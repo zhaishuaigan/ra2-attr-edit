@@ -1,0 +1,31 @@
+.scrollbar-demo-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px;
+    margin: 10px;
+    text-align: center;
+    border-radius: 4px;
+    background: var(--el-color-primary-light-9);
+    color: var(--el-color-primary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.tabs>.el-tabs__content {
+    padding: 32px;
+    color: #6b778c;
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.attr-item {}
+
+.attr-item .btn-edit {
+    margin-left: 10px;
+    visibility: hidden;
+}
+
+.attr-item:hover .btn-edit {
+    visibility: visible;
+}

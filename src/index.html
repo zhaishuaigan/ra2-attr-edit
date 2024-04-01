@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>红警地图单位属性查看器</title>
+    <link rel="stylesheet" href="./assets/plugin/element-plus/index.css" />
+    <link rel="stylesheet" href="./assets/style/index.css">
+    <script src="./assets/plugin/vue.global.prod.js"></script>
+    <script src="./assets/plugin/encode.js"></script>
+    <script src="./assets/plugin/element-plus/index.full.min.js"></script>
+    <script src="./assets/script/ini.js"></script>
+    <script src="./assets/script/config.js"></script>
+    <script src="./assets/script/map.js"></script>
+</head>
+
+<body>
+    <div class="el-loading-mask" id="loading">
+        <div class="el-loading-spinner">
+            <svg class="circular" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none"></circle>
+            </svg>
+        </div>
+    </div>
+    <div id="app" style="display: none;">
+        <div style=" display: flex; justify-content: center; align-items: center; padding: 20px;">
+            <el-tooltip class="box-item" effect="dark" content="选择一个地图文件, 可以标记出新增和修改过的单位" placement="bottom">
+                <el-button type="success" @click="选择地图()">选择地图查看</el-button>
+            </el-tooltip>
+            <el-tooltip class="box-item" effect="dark" content="如果你有单独写好的功能, 可以使用这个按钮把它合并到当前地图里面" placement="bottom">
+                <el-button type="success" @click="追加配置()">追加ini配置</el-button>
+            </el-tooltip>
+            <el-tooltip class="box-item" effect="dark"
+                content="如果你自定义了某些单位的中文翻译, 可以使用这个按钮把csf.ini (必须是GBK或GB2312编码的文件, 地编转换的可以直接用) 加载进来, 这样就可以显示单位的中文名字了"
+                placement="bottom">
+                <el-button type="success" @click="追加中文翻译()">选择CSF.ini文件</el-button>
+            </el-tooltip>
+            <el-tooltip v-if="文件名 != ''" class="box-item" effect="dark"
+                content="保存地图 (Ctrl + S) , 将直接覆盖打开的地图, 记得提前备份, 说不定一不小心就把地图搞坏了!" placement="bottom">
+                <el-button type="success" @click="保存地图()">保存地图 [{{文件名}}]</el-button>
+            </el-tooltip>
+        </div>
+        <el-row>
+            <el-col :span="8">
+                <div class="grid-content">
+                    <template v-for="(单位, 注册名) in 建筑列表">
+                        <p @click="显示详情(单位, 注册名)" class="scrollbar-demo-item">
+                            {{获取单位名字(单位)}}
+                            [{{注册名}}]
+                            <span v-if="单位.状态 != '未修改'" style="color: red; padding-left: 10px;"> {{单位.状态}}</span>
+                        </p>
+                    </template>
+                </div>
+            </el-col>
+            <el-col :span="8">
+                <div class="grid-content">
+                    <template v-for="(单位, 注册名) in 士兵列表">
+                        <p @click="显示详情(单位, 注册名)" class="scrollbar-demo-item">
+                            {{获取单位名字(单位)}}
+                            [{{注册名}}]
+                            <span v-if="单位.状态 != '未修改'" style="color: red; padding-left: 10px;"> {{单位.状态}}</span>
+                        </p>
+                    </template>
+                </div>
+
+            </el-col>
+            <el-col :span="8">
+                <div class="grid-content">
+                    <template v-for="(单位, 注册名) in 战车或飞机列表">
+                        <p @click="显示详情(单位, 注册名)" class="scrollbar-demo-item">
+                            {{获取单位名字(单位)}}
+                            [{{注册名}}]
+                            <span v-if="单位.状态 != '未修改'" style="color: red; padding-left: 10px;"> {{单位.状态}}</span>
+                        </p>
+                    </template>
+                </div>
+
+            </el-col>
+        </el-row>
+        <el-drawer v-model="打开单位详情页面" :title="选中的单位?.UIName2" :size="drawerSize">
+            <el-tabs v-model="激活选项卡" type="card" class="tabs">
+                <el-tab-pane label="单位属性" name="属性">
+                    <el-descriptions title="单位属性" :column="1" border>
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(选中的注册名)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <el-descriptions-item label="注册名">[{{选中的注册名}}]</el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                <span>{{属性值}}</span>
+                                <span v-if="获取属性状态(选中的注册名, 属性名) == '新增'" style=" color: red">[新增]</span>
+                                <span v-if="获取属性状态(选中的注册名, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[选中的注册名][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text" @click="编辑属性(选中的注册名, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+
+                    </el-descriptions>
+                </el-tab-pane>
+                <el-tab-pane label="武器" name="武器" v-if="要展示的数据.Primary">
+                    <el-descriptions :title="'主要武器 [' + 要展示的数据.Primary + ']'" :column="1" border>
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.Primary)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.Primary2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.Primary, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.Primary, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.Primary][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.Primary, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+
+                    <el-descriptions v-if="要展示的数据.ElitePrimary" :title="'三星后主武器 ['+要展示的数据.ElitePrimary+']'" :column="1"
+                        border style="margin-top: 30px;">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.ElitePrimary)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.ElitePrimary2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.ElitePrimary, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.ElitePrimary, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.ElitePrimary][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.ElitePrimary, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+
+                    <el-descriptions v-if="要展示的数据.Secondary" :title="'第二武器 ['+要展示的数据.Secondary+']'" :column="1" border
+                        style="margin-top: 30px;">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.Secondary)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.Secondary2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.Secondary, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.Secondary, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.Secondary][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.Secondary, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+                    <el-descriptions v-if="要展示的数据.EliteSecondary" :title="'三星后的第二武器 ['+要展示的数据.EliteSecondary+']'"
+                        :column="1" border style="margin-top: 30px;">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.EliteSecondary)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.EliteSecondary2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.EliteSecondary, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.EliteSecondary, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.EliteSecondary][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.EliteSecondary, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+                </el-tab-pane>
+                <el-tab-pane label="弹头" name="弹头" v-if="要展示的数据.Primary">
+                    <el-descriptions v-if="要展示的数据.Primary2" :title="'主要武器的弹头 ['+要展示的数据.Primary2.Warhead+']'" :column="1"
+                        border v-if="要展示的数据.Primary">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.Primary2.Warhead)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.Primary2.Warhead2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.Primary2.Warhead, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.Primary2.Warhead, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.Primary2.Warhead][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.Primary2.Warhead, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+                    <el-descriptions :title="'三星后主武器的弹头 ['+要展示的数据.ElitePrimary2.Warhead+']'" :column="1" border
+                        v-if="要展示的数据.ElitePrimary" style="margin-top: 30px;">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.ElitePrimary2.Warhead)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.ElitePrimary2.Warhead2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.ElitePrimary2.Warhead, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.ElitePrimary2.Warhead, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.ElitePrimary2.Warhead][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.ElitePrimary2.Warhead, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+
+                    <el-descriptions :title="'第二武器的弹头 ['+要展示的数据.Secondary2.Warhead+']'" :column="1" border
+                        v-if="要展示的数据.Secondary" style="margin-top: 30px;">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.Secondary2.Warhead)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.Secondary2.Warhead2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.Secondary2.Warhead, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.Secondary2.Warhead, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.Secondary2.Warhead][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.Secondary2.Warhead, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+                    <el-descriptions :title="'三星后第二武器的弹头 ['+要展示的数据.EliteSecondary2.Warhead+']'" :column="1" border
+                        v-if="要展示的数据.EliteSecondary" style="margin-top: 30px;">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.EliteSecondary2.Warhead)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.EliteSecondary2.Warhead2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.EliteSecondary2.Warhead, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.EliteSecondary2.Warhead, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.EliteSecondary2.Warhead][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.EliteSecondary2.Warhead, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+                </el-tab-pane>
+                <el-tab-pane label="抛射体" name="抛射体" v-if="要展示的数据.Primary">
+                    <el-descriptions :title="'主要武器的抛射体 ['+要展示的数据.Primary2.Projectile+']'" :column="1" border
+                        v-if="要展示的数据.Primary">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.Primary2.Projectile)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.Primary2.Projectile2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.Primary2.Projectile, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.Primary2.Projectile, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.Primary2.Projectile][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.Primary2.Projectile, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+                    <el-descriptions :title="'三星后主武器的抛射体 ['+要展示的数据.ElitePrimary2.Projectile+']'" :column="1" border
+                        v-if="要展示的数据.ElitePrimary" style="margin-top: 30px;">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.ElitePrimary2.Projectile)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.ElitePrimary2.Projectile2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.ElitePrimary2.Projectile, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.ElitePrimary2.Projectile, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.ElitePrimary2.Projectile][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.ElitePrimary2.Projectile, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+
+                    <el-descriptions :title="'第二武器的抛射体 ['+要展示的数据.Secondary2.Projectile+']'" :column="1" border
+                        v-if="要展示的数据.Secondary" style="margin-top: 30px;">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.Secondary2.Projectile)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.Secondary2.Projectile2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.Secondary2.Projectile, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.Secondary2.Projectile, 属性名) == '已修改'" style=" color: red">
+                                    [原始值: {{rules[要展示的数据.Secondary2.Projectile][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.Secondary2.Projectile, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+                    <el-descriptions :title="'三星后第二武器的抛射体 ['+要展示的数据.EliteSecondary2.Projectile+']'" :column="1" border
+                        v-if="要展示的数据.EliteSecondary" style="margin-top: 30px;">
+                        <el-descriptions-item label="操作">
+                            <el-button type="success" @click="添加属性(要展示的数据.EliteSecondary2.Projectile)">添加属性</el-button>
+                        </el-descriptions-item>
+                        <template v-for="(属性值, 属性名) in 要展示的数据.EliteSecondary2.Projectile2">
+                            <el-descriptions-item class-name="attr-item" v-if="typeof 属性值 == 'string'" :label="属性名">
+                                <template #label>
+                                    <div class="cell-item">
+                                        <el-tooltip class="box-item" effect="dark" raw-content :content="翻译属性(属性名)"
+                                            placement="bottom">
+                                            {{属性名}}
+                                        </el-tooltip>
+                                    </div>
+                                </template>
+                                {{属性值}}
+                                <span v-if="获取属性状态(要展示的数据.EliteSecondary2.Projectile, 属性名) == '新增'" style=" color: red">
+                                    [新增]</span>
+                                <span v-if="获取属性状态(要展示的数据.EliteSecondary2.Projectile, 属性名) == '已修改'"
+                                    style=" color: red">
+                                    [原始值: {{rules[要展示的数据.EliteSecondary2.Projectile][属性名]}}]</span>
+                                <el-button class="btn-edit" type="text"
+                                    @click="编辑属性(要展示的数据.EliteSecondary2.Projectile, 属性名, 属性值)">修改</el-button>
+                            </el-descriptions-item>
+                        </template>
+                    </el-descriptions>
+
+                </el-tab-pane>
+            </el-tabs>
+        </el-drawer>
+        <el-dialog v-model="编辑属性对话框" :title="'编辑属性 ['+要编辑的单位.注册名+']'" width="500">
+            <el-form @submit.native.prevent="保存属性(要编辑的单位);">
+                <el-form-item :label="要编辑的单位.属性名 + ' = '" :label-width="formLabelWidth">
+                    <el-autocomplete v-model="要编辑的单位.属性值" :fetch-suggestions="搜索属性值" clearable
+                        class="inline-input el-form-item__content">
+                        <template #default="{ item }">
+                            <div class="value">{{ item.value }} <span class="zh">{{ item.zh }}</span></div>
+
+                        </template>
+                    </el-autocomplete>
+
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="删除属性(要编辑的单位.注册名, 要编辑的单位.属性名)" type="danger">删除</el-button>
+                    <el-button @click="编辑属性对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="保存属性(要编辑的单位)">
+                        确定
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+        <el-dialog v-model="添加属性对话框" :title="'添加属性 ['+要添加的属性.注册名+']'" width="500">
+            <el-form @submit.native.prevent="保存添加的属性(要添加的属性);">
+                <el-form-item label="属性名" :label-width="formLabelWidth">
+                    <el-autocomplete v-model="要添加的属性.属性名" :fetch-suggestions="搜索属性名" clearable
+                        class="inline-input el-form-item__content">
+                        <template #default="{ item }">
+                            <div class="value">{{ item.value }} <span class="zh">{{ item.zh }}</span></div>
+
+                        </template>
+                    </el-autocomplete>
+                </el-form-item>
+                <el-form-item label="属性值" :label-width="formLabelWidth">
+                    <el-autocomplete v-model="要添加的属性.属性值" :fetch-suggestions="搜索属性值" clearable
+                        class="inline-input el-form-item__content">
+                        <template #default="{ item }">
+                            <div class="value">{{ item.value }} <span class="zh">{{ item.zh }}</span></div>
+
+                        </template>
+                    </el-autocomplete>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="添加属性对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="保存添加的属性(要添加的属性)">
+                        确定
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+    </div>
+
+
+
+    <div style="display: none;">
+        [global]
+    </div>
+
+    <script src="./assets/script/index.js"></script>
+</body>
+
+</html>

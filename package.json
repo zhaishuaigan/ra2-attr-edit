@@ -1,0 +1,12 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx serve -p 2000 ./src/",
+    "build": "node ./build/build.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
