@@ -26,12 +26,12 @@
         stringify: function (data) {
             var result = '';
             for (var section in data) {
-                result += '[' + section + ']\n';
+                result += '\n\n[' + section + ']\n';
                 for (var key in data[section]) {
                     result += key + '=' + data[section][key] + '\n';
                 }
             }
-            return result;
+            return result.trim();
         }
     }
 })(window);

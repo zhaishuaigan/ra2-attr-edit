@@ -40,6 +40,11 @@
                 content="保存地图 (Ctrl + S) , 将直接覆盖打开的地图, 记得提前备份, 说不定一不小心就把地图搞坏了!" placement="bottom">
                 <el-button type="success" @click="保存地图()">保存地图 [{{文件名}}]</el-button>
             </el-tooltip>
+            <el-tooltip class="box-item" effect="dark"
+                content="这个按钮可以用来生成盲盒, 原理是根据单位上的自定义属性[manghe]来生成指定数量的盲盒, 生成的盲盒会自动排好注册表, 只需要保存文件, 然后用include引入即可."
+                placement="bottom">
+                <el-button type="success" @click="打开盲盒生成器()">盲盒配置与生成</el-button>
+            </el-tooltip>
         </div>
         <el-row>
             <el-col :span="8">
@@ -84,6 +89,12 @@
                     <el-descriptions title="单位属性" :column="1" border>
                         <el-descriptions-item label="操作">
                             <el-button type="success" @click="添加属性(选中的注册名)">添加属性</el-button>
+                            <el-button type="success" v-if="建筑列表[选中的注册名]" @click="打开建筑盲盒生成器(选中的注册名)">生成盲盒</el-button>
+                            <el-button type="success" v-if="战车或飞机列表[选中的注册名]" @click="打开战车盲盒生成器(选中的注册名)">生成盲盒</el-button>
+                            <el-button type="success" v-if="!选中的单位['manghe']"
+                                @click="加入盲盒生成器(选中的注册名)">加入盲盒生成器</el-button>
+                            <el-button type="danger" v-if="选中的单位['manghe']"
+                                @click="从盲盒生成器中删除(选中的注册名)">从盲盒生成器中删除</el-button>
                         </el-descriptions-item>
                         <el-descriptions-item label="注册名">[{{选中的注册名}}]</el-descriptions-item>
                         <template v-for="(属性值, 属性名) in 要展示的数据">
@@ -472,6 +483,107 @@
                 </div>
             </template>
         </el-dialog>
+
+        <el-dialog v-model="生成建筑盲盒对话框" :title="'给 [' + 获取单位名字(生成建筑盲盒的数据.注册名) + '] 生成盲盒'" width="500">
+            <el-form :model="生成建筑盲盒的数据">
+                <el-form-item label="生成数量">
+                    <el-input v-model="生成建筑盲盒的数据.生成数量" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="开始编号">
+                    <el-input v-model="生成建筑盲盒的数据.开始编号" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="模板设置">
+                    <el-input v-model="生成建筑盲盒的数据.模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+                <el-form-item label="生成结果">
+                    <el-input v-model="生成建筑盲盒的数据.生成结果" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="生成建筑盲盒对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="根据参数生成建筑盲盒数据()">
+                        生成
+                    </el-button>
+                    <!-- <el-button type="danger" @click="生成建筑盲盒对话框 = false">
+                        插入当前地图
+                    </el-button> -->
+                    <el-button type="danger" @click="将文本保存成本地文件(生成建筑盲盒的数据.生成结果, 生成建筑盲盒的数据.注册名 + '.manghe.ini')">
+                        将结果另存为独立文件
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+
+        <el-dialog v-model="生成战车盲盒对话框" :title="'给 [' + 获取单位名字(生成战车盲盒的数据.注册名) + '] 生成盲盒'" width="500">
+            <el-form :model="生成战车盲盒的数据">
+                <el-form-item label="生成数量">
+                    <el-input v-model="生成战车盲盒的数据.生成数量" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="开始编号">
+                    <el-input v-model="生成战车盲盒的数据.开始编号" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="生成结果">
+                    <el-input v-model="生成战车盲盒的数据.生成结果" :autosize="{ minRows: 5, maxRows: 15 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="生成战车盲盒对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="根据参数生成战车盲盒数据()">
+                        生成
+                    </el-button>
+                    <!-- <el-button type="danger" @click="生成战车盲盒对话框 = false">
+                        插入当前地图
+                    </el-button> -->
+                    <el-button type="danger" @click="将文本保存成本地文件(生成战车盲盒的数据.生成结果, 生成战车盲盒的数据.注册名 + '.manghe.ini')">
+                        将结果另存为独立文件
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+
+
+        <el-dialog v-model="盲盒生成器对话框" title="盲盒生成器" width="600">
+            <el-form :model="盲盒生成器的数据">
+                <el-form-item label="开始编号">
+                    <el-input v-model="盲盒生成器的数据.开始编号" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="单位配置">
+                    <el-input v-model="盲盒生成器的数据.已有配置" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+                <el-form-item label="模板设置">
+                    <el-input v-model="盲盒生成器的数据.模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+                <el-form-item label="生成结果">
+                    <el-input v-model="盲盒生成器的数据.生成结果" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="盲盒生成器对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="生成盲盒数据()">
+                        生成
+                    </el-button>
+                    <!-- <el-button type="danger" @click="生成盲盒的数据 = false">
+                        插入当前地图
+                    </el-button> -->
+                    <el-button type="danger" @click="将文本保存成本地文件(盲盒生成器的数据.生成结果, 'manghe.rules.ini')">
+                        将结果另存为独立文件
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+
     </div>
 
 
