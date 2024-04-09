@@ -6912,12 +6912,12 @@ function print() { __p += __j.call(arguments, '') }
         stringify: function (data) {
             var result = '';
             for (var section in data) {
-                result += '[' + section + ']\n';
+                result += '\n\n[' + section + ']\n';
                 for (var key in data[section]) {
                     result += key + '=' + data[section][key] + '\n';
                 }
             }
-            return result;
+            return result.trim();
         }
     }
 })(window);
@@ -7146,6 +7146,11 @@ function print() { __p += __j.call(arguments, '') }
                 content="保存地图 (Ctrl + S) , 将直接覆盖打开的地图, 记得提前备份, 说不定一不小心就把地图搞坏了!" placement="bottom">
                 <el-button type="success" @click="保存地图()">保存地图 [{{文件名}}]</el-button>
             </el-tooltip>
+            <el-tooltip class="box-item" effect="dark"
+                content="这个按钮可以用来生成盲盒, 原理是根据单位上的自定义属性[manghe]来生成指定数量的盲盒, 生成的盲盒会自动排好注册表, 只需要保存文件, 然后用include引入即可."
+                placement="bottom">
+                <el-button type="success" @click="打开盲盒生成器()">盲盒配置与生成</el-button>
+            </el-tooltip>
         </div>
         <el-row>
             <el-col :span="8">
@@ -7190,6 +7195,12 @@ function print() { __p += __j.call(arguments, '') }
                     <el-descriptions title="单位属性" :column="1" border>
                         <el-descriptions-item label="操作">
                             <el-button type="success" @click="添加属性(选中的注册名)">添加属性</el-button>
+                            <el-button type="success" v-if="建筑列表[选中的注册名]" @click="打开建筑盲盒生成器(选中的注册名)">生成盲盒</el-button>
+                            <el-button type="success" v-if="战车或飞机列表[选中的注册名]" @click="打开战车盲盒生成器(选中的注册名)">生成盲盒</el-button>
+                            <el-button type="success" v-if="!选中的单位['manghe']"
+                                @click="加入盲盒生成器(选中的注册名)">加入盲盒生成器</el-button>
+                            <el-button type="danger" v-if="选中的单位['manghe']"
+                                @click="从盲盒生成器中删除(选中的注册名)">从盲盒生成器中删除</el-button>
                         </el-descriptions-item>
                         <el-descriptions-item label="注册名">[{{选中的注册名}}]</el-descriptions-item>
                         <template v-for="(属性值, 属性名) in 要展示的数据">
@@ -7578,6 +7589,107 @@ function print() { __p += __j.call(arguments, '') }
                 </div>
             </template>
         </el-dialog>
+
+        <el-dialog v-model="生成建筑盲盒对话框" :title="'给 [' + 获取单位名字(生成建筑盲盒的数据.注册名) + '] 生成盲盒'" width="500">
+            <el-form :model="生成建筑盲盒的数据">
+                <el-form-item label="生成数量">
+                    <el-input v-model="生成建筑盲盒的数据.生成数量" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="开始编号">
+                    <el-input v-model="生成建筑盲盒的数据.开始编号" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="模板设置">
+                    <el-input v-model="生成建筑盲盒的数据.模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+                <el-form-item label="生成结果">
+                    <el-input v-model="生成建筑盲盒的数据.生成结果" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="生成建筑盲盒对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="根据参数生成建筑盲盒数据()">
+                        生成
+                    </el-button>
+                    <!-- <el-button type="danger" @click="生成建筑盲盒对话框 = false">
+                        插入当前地图
+                    </el-button> -->
+                    <el-button type="danger" @click="将文本保存成本地文件(生成建筑盲盒的数据.生成结果, 生成建筑盲盒的数据.注册名 + '.manghe.ini')">
+                        将结果另存为独立文件
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+
+        <el-dialog v-model="生成战车盲盒对话框" :title="'给 [' + 获取单位名字(生成战车盲盒的数据.注册名) + '] 生成盲盒'" width="500">
+            <el-form :model="生成战车盲盒的数据">
+                <el-form-item label="生成数量">
+                    <el-input v-model="生成战车盲盒的数据.生成数量" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="开始编号">
+                    <el-input v-model="生成战车盲盒的数据.开始编号" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="生成结果">
+                    <el-input v-model="生成战车盲盒的数据.生成结果" :autosize="{ minRows: 5, maxRows: 15 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="生成战车盲盒对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="根据参数生成战车盲盒数据()">
+                        生成
+                    </el-button>
+                    <!-- <el-button type="danger" @click="生成战车盲盒对话框 = false">
+                        插入当前地图
+                    </el-button> -->
+                    <el-button type="danger" @click="将文本保存成本地文件(生成战车盲盒的数据.生成结果, 生成战车盲盒的数据.注册名 + '.manghe.ini')">
+                        将结果另存为独立文件
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+
+
+        <el-dialog v-model="盲盒生成器对话框" title="盲盒生成器" width="600">
+            <el-form :model="盲盒生成器的数据">
+                <el-form-item label="开始编号">
+                    <el-input v-model="盲盒生成器的数据.开始编号" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="单位配置">
+                    <el-input v-model="盲盒生成器的数据.已有配置" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+                <el-form-item label="模板设置">
+                    <el-input v-model="盲盒生成器的数据.模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+                <el-form-item label="生成结果">
+                    <el-input v-model="盲盒生成器的数据.生成结果" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="盲盒生成器对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="生成盲盒数据()">
+                        生成
+                    </el-button>
+                    <!-- <el-button type="danger" @click="生成盲盒的数据 = false">
+                        插入当前地图
+                    </el-button> -->
+                    <el-button type="danger" @click="将文本保存成本地文件(盲盒生成器的数据.生成结果, 'manghe.rules.ini')">
+                        将结果另存为独立文件
+                    </el-button>
+                </div>
+            </template>
+        </el-dialog>
+
     </div>
 
 
@@ -7680,6 +7792,30 @@ function print() { __p += __j.call(arguments, '') }
                     属性名: '',
                     属性值: ''
                 },
+                生成建筑盲盒对话框: false,
+                生成建筑盲盒的数据: {
+                    注册名: '',
+                    模板: '[{注册名}{编号}]\nUIName={显示名}\nName={注册名}\nDeploysInto={注册名}\nGroupAs={注册名}\nCost=1000\nSize=6\nArmor=light\nImage=TRUCKB\nOwner=British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs,YuriCountry\nSight=5\nSpeed=4\nCrewed=no\nPoints=40\nTurret=no\nWeight=2\nCrusher=no\nPrimary=none\nSoylent=100\nCategory=AFV\nDieSound=GenVehicleDie\nStrength=200\nExplosion=TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60\nLocomotor={4A582741-9839-11d1-B709-00A024DDAFD1}\nMaxDebris=2\nSecondary=none\nTechLevel=-1\nTrainable=no\nVoiceMove=\nCrushSound=TankCrush\nCrateGoodie=yes\nDebrisTypes=TIRE\nSelfHealing=no\nThreatPosed=50\nVoiceAttack=GenAllVehicleAttackCommand\nVoiceSelect=GenAllVehicleSelect\nCarriesCrate=yes\nMovementZone=Normal\nInsignificant=no\nVoiceFeedback=\nDebrisMaximums=4\nDamageParticleSystems=SparkSys,SmallGreySSys\nAllowedToStartInMultiplayer=no',
+                    生成数量: 10,
+                    开始编号: 200,
+                    生成结果: '',
+                },
+                生成战车盲盒对话框: false,
+                生成战车盲盒的数据: {
+                    注册名: '',
+                    生成数量: 10,
+                    开始编号: 200,
+                    生成结果: '',
+                },
+                盲盒生成器对话框: false,
+                盲盒生成器的数据: {
+                    模板: '[{注册名}{编号}]\nUIName={显示名}\nName={注册名}\nDeploysInto={注册名}\nGroupAs={注册名}\nCost=1000\nSize=6\nArmor=light\nImage=TRUCKB\nOwner=British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs,YuriCountry\nSight=5\nSpeed=4\nCrewed=no\nPoints=40\nTurret=no\nWeight=2\nCrusher=no\nPrimary=none\nSoylent=100\nCategory=AFV\nDieSound=GenVehicleDie\nStrength=200\nExplosion=TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60\nLocomotor={4A582741-9839-11d1-B709-00A024DDAFD1}\nMaxDebris=2\nSecondary=none\nTechLevel=-1\nTrainable=no\nVoiceMove=\nCrushSound=TankCrush\nCrateGoodie=yes\nDebrisTypes=TIRE\nSelfHealing=no\nThreatPosed=50\nVoiceAttack=GenAllVehicleAttackCommand\nVoiceSelect=GenAllVehicleSelect\nCarriesCrate=yes\nMovementZone=Normal\nInsignificant=no\nVoiceFeedback=\nDebrisMaximums=4\nDamageParticleSystems=SparkSys,SmallGreySSys\nAllowedToStartInMultiplayer=no',
+                    开始编号: 200,
+                    已有配置: '',
+                    建筑: {},
+                    战车: {},
+                    生成结果: '',
+                },
                 选中的单位: null,
                 选中的注册名: '',
                 rules: 原始地图数据.rules,
@@ -7762,9 +7898,14 @@ function print() { __p += __j.call(arguments, '') }
                 this.drawerSize = "100%";
             }
 
-            this.获取所有武器();
+            // this.获取所有武器();
+            // this.获取所有建筑的显示名();
 
-
+            // 从本地缓存读取模板
+            var 模板 = localStorage.getItem('建筑盲盒的模板');
+            if (模板) {
+                this.生成建筑盲盒的数据.模板 = 模板;
+            }
         },
         methods: {
             翻译属性: function (属性名) {
@@ -7776,6 +7917,236 @@ function print() { __p += __j.call(arguments, '') }
                     }
                 }
                 return '暂无翻译';
+            },
+            获取所有建筑的显示名: function () {
+                var 所有建筑 = {};
+                var 所有建筑列表 = Object.values(合并后的数据.rules['BuildingTypes']);
+                for (var 单位注册名 of 所有建筑列表) {
+                    var 单位 = 合并后的数据.rules[单位注册名];
+                    if (单位 && 单位.UIName) {
+                        所有建筑[单位注册名] = 单位.UIName;
+                    } else {
+                        所有建筑[单位注册名] = 'Name:' + 单位注册名;
+                    }
+                }
+                return 所有建筑;
+            },
+            打开建筑盲盒生成器: function (注册名) {
+                this.生成建筑盲盒对话框 = true;
+                this.生成建筑盲盒的数据.注册名 = 注册名;
+                this.生成建筑盲盒的数据.生成结果 = '';
+            },
+            根据参数生成建筑盲盒数据: function () {
+                var 参数 = this.生成建筑盲盒的数据;
+                var 所有显示名 = this.获取所有建筑的显示名();
+                var 注册表 = {};
+                注册表['VehicleTypes'] = {};
+                新单位数据 = '';
+                var 模板 = 参数.模板;
+                var 结束编号 = parseInt(参数.开始编号) + parseInt(参数.生成数量);
+                for (var i = 参数.开始编号; i < 结束编号; i++) {
+                    var 新注册名 = 参数.注册名 + i;
+                    注册表['VehicleTypes'][i] = 新注册名;
+                    新单位数据 += 模板.replace(/\{注册名\}/g, 参数.注册名)
+                        .replace(/\{显示名\}/g, 所有显示名[参数.注册名])
+                        .replace('{编号}', i) + '\n\n';
+                }
+
+                生成结果 = ini.stringify(注册表) + '\n\n' + 新单位数据;
+                this.生成建筑盲盒的数据.生成结果 = 生成结果;
+                this.生成战车盲盒的数据.开始编号 = 结束编号;
+                this.生成建筑盲盒的数据.开始编号 = 结束编号;
+                // 缓存模板写入本地缓存
+                localStorage.setItem('建筑盲盒的模板', this.生成建筑盲盒的数据.模板);
+
+            },
+            打开战车盲盒生成器: function (注册名) {
+                this.生成战车盲盒对话框 = true;
+                this.生成战车盲盒的数据.注册名 = 注册名;
+                this.生成战车盲盒的数据.生成结果 = '';
+            },
+            根据参数生成战车盲盒数据: function () {
+                var 参数 = this.生成战车盲盒的数据;
+                // 完全复制选中的战车, 然后修改模型
+                var 单位 = JSON.parse(JSON.stringify(合并后的数据.rules[参数.注册名]));
+                单位.GroupAs = 参数.注册名;
+                单位.CrateGoodie = 'yes';
+                delete 单位.UIName2;
+                for (var i in 单位) {
+                    if (typeof 单位[i] != 'string') {
+                        delete 单位[i];
+                    }
+                }
+                var 注册表 = {};
+                注册表['VehicleTypes'] = {};
+                var 新单位列表 = {};
+                var 生成结果 = '';
+                var 结束编号 = parseInt(参数.开始编号) + parseInt(参数.生成数量);
+                for (var i = 参数.开始编号; i < 结束编号; i++) {
+                    var 新注册名 = 参数.注册名 + i;
+                    注册表['VehicleTypes'][i] = 新注册名;
+                    新单位列表[新注册名] = JSON.parse(JSON.stringify(单位));
+                }
+                生成结果 = ini.stringify(注册表) + '\n\n' + ini.stringify(新单位列表);
+                this.生成战车盲盒的数据.生成结果 = 生成结果;
+                this.生成战车盲盒的数据.开始编号 = 结束编号;
+                this.生成建筑盲盒的数据.开始编号 = 结束编号;
+
+            },
+
+            加入盲盒生成器: async function (注册名) {
+                await this.保存添加的属性({
+                    注册名: 注册名,
+                    属性名: 'manghe',
+                    属性值: '1',
+                });
+                ElementPlus.ElNotification({
+                    title: '提示',
+                    message: '加入盲盒生成器成功',
+                    type: 'success',
+                    duration: 3000,
+                })
+
+            },
+            从盲盒生成器中删除: async function (注册名) {
+                await this.直接删除属性不提示(注册名, 'manghe');
+            },
+
+
+            打开盲盒生成器: function () {
+                if (typeof 合并后的数据.rules['manghe'] !== 'undefined') {
+                    this.盲盒生成器的数据.模板 = JSON.parse(合并后的数据.rules['manghe']['tpl']);
+                    this.盲盒生成器的数据.开始编号 = 合并后的数据.rules['manghe']['start'];
+                }
+                this.计算盲盒生成器的数据();
+                this.盲盒生成器对话框 = true;
+            },
+            计算盲盒生成器的数据: function () {
+                var 所有要生成盲盒的建筑 = {};
+                var 所有要生成盲盒的战车 = {};
+                this.盲盒生成器的数据.已有配置 = '';
+                var 所有建筑 = Object.values(合并后的数据.rules["BuildingTypes"]);
+                for (var i = 0; i < 所有建筑.length; i++) {
+                    var 注册名 = 所有建筑[i];
+                    if (typeof 合并后的数据.rules[注册名] == 'undefined') {
+                        continue;
+                    }
+
+                    if (typeof 合并后的数据.rules[注册名]['manghe'] != 'undefined') {
+                        所有要生成盲盒的建筑[注册名] = 合并后的数据.rules[注册名];
+                        this.盲盒生成器的数据.已有配置 += 注册名 + '=' + 合并后的数据.rules[注册名]['manghe'] + ';' + 合并后的数据.rules[注册名]['UIName2'] + '\n';
+                    }
+                }
+
+                var 所有战车 = Object.values(合并后的数据.rules["VehicleTypes"]);
+                for (var i = 0; i < 所有战车.length; i++) {
+                    var 注册名 = 所有战车[i];
+                    if (typeof 合并后的数据.rules[注册名] == 'undefined') {
+                        continue;
+                    }
+                    if (typeof 合并后的数据.rules[注册名]['manghe'] != 'undefined') {
+                        所有要生成盲盒的战车[注册名] = 合并后的数据.rules[注册名];
+                        this.盲盒生成器的数据.已有配置 += 注册名 + '=' + 合并后的数据.rules[注册名]['manghe'] + ';' + 合并后的数据.rules[注册名]['UIName2'] + '\n';
+                    }
+                }
+                this.盲盒生成器的数据.生成结果 = '';
+                this.盲盒生成器的数据.建筑 = 所有要生成盲盒的建筑;
+                this.盲盒生成器的数据.战车 = 所有要生成盲盒的战车;
+            },
+            生成盲盒数据: async function () {
+                var 开始编号 = parseInt(this.盲盒生成器的数据.开始编号);
+                var 模板 = this.盲盒生成器的数据.模板;
+                var 修改后的数据 = ini.parse('[盲盒]\n' + this.盲盒生成器的数据.已有配置);
+                for (var 注册名 in 修改后的数据['盲盒']) {
+                    if (修改后的数据['盲盒'][注册名] != 合并后的数据.rules[注册名]['manghe']) {
+                        await this.保存属性({
+                            注册名: 注册名,
+                            属性名: 'manghe',
+                            属性值: 修改后的数据['盲盒'][注册名],
+                        });
+                    }
+                }
+
+                for (var 注册名 in this.盲盒生成器的数据.建筑) {
+                    if (typeof 修改后的数据['盲盒'][注册名] == 'undefined') {
+                        await this.直接删除属性不提示(注册名, 'manghe');
+                    }
+                }
+
+                for (var 注册名 in this.盲盒生成器的数据.战车) {
+                    if (typeof 修改后的数据['盲盒'][注册名] == 'undefined') {
+                        await this.直接删除属性不提示(注册名, 'manghe');
+                    }
+                }
+                this.计算盲盒生成器的数据();
+                var 所有显示名 = this.获取所有建筑的显示名();
+                var 开始编号 = parseInt(this.盲盒生成器的数据.开始编号);
+                var 模板 = this.盲盒生成器的数据.模板;
+                var 生成结果 = '';
+                var 注册表 = {};
+                注册表['VehicleTypes'] = {};
+                for (var i in this.盲盒生成器的数据.建筑) {
+                    var 注册名 = i;
+                    var 数量 = parseInt(this.盲盒生成器的数据.建筑[i]['manghe']);
+                    var 结束编号 = 开始编号 + 数量;
+                    for (var j = 开始编号; j < 结束编号; j++) {
+                        注册表['VehicleTypes'][开始编号] = 注册名 + 开始编号;
+                        生成结果 += 模板.replace(/\{注册名\}/g, i)
+                            .replace(/\{显示名\}/g, 所有显示名[注册名])
+                            .replace('{编号}', 开始编号) + '\n\n';
+                        开始编号++;
+                    }
+                }
+                for (var i in this.盲盒生成器的数据.战车) {
+                    var 注册名 = i;
+                    var 数量 = parseInt(this.盲盒生成器的数据.战车[注册名]['manghe']);
+                    var 结束编号 = 开始编号 + 数量;
+                    var 单位 = JSON.parse(JSON.stringify(合并后的数据.rules[注册名]));
+                    单位.GroupAs = i;
+                    单位.CrateGoodie = 'yes';
+                    if (typeof 单位.Image === 'undefined') {
+                        单位.Image = 注册名;
+                    }
+                    delete 单位.UIName2;
+                    for (var j in 单位) {
+                        if (typeof 单位[j] != 'string') {
+                            delete 单位[j];
+                        }
+                    }
+
+                    for (var j = 开始编号; j < 结束编号; j++) {
+                        注册表['VehicleTypes'][开始编号] = 注册名 + 开始编号;
+                        var 新单位 = {};
+                        新单位[注册名 + 开始编号] = 单位;
+                        生成结果 += ini.stringify(新单位) + '\n\n';
+                        开始编号++;
+                    }
+                }
+                this.盲盒生成器的数据.生成结果 = ini.stringify(注册表) + '\n\n' + 生成结果;
+                this.保存属性({
+                    注册名: 'manghe',
+                    属性名: 'tpl',
+                    属性值: JSON.stringify(this.盲盒生成器的数据.模板),
+                });
+                this.保存属性({
+                    注册名: 'manghe',
+                    属性名: 'start',
+                    属性值: this.盲盒生成器的数据.开始编号,
+                });
+            },
+
+            将文本保存成本地文件: function (文本, 文件名) {
+                // 使用web file system api保存文件
+                window.showSaveFilePicker({
+                    suggestedName: 文件名
+                }).then(function (fileHandle) {
+                    fileHandle.createWritable().then(function (fileWritable) {
+                        const encoder = new TextEncoder();
+                        const data = encoder.encode(文本);
+                        fileWritable.write(data);
+                        fileWritable.close();
+                    });
+                });
             },
             获取所有武器: function () {
                 // 正式环境不需要这个功能
@@ -7894,6 +8265,9 @@ function print() { __p += __j.call(arguments, '') }
                 })();
             },
             获取单位名字: function (单位) {
+                if (typeof 单位 === 'string') {
+                    单位 = 合并后的数据.rules[单位];
+                }
                 if (!单位) {
                     return "";
                 }
@@ -8046,15 +8420,33 @@ function print() { __p += __j.call(arguments, '') }
             },
             保存属性: async function (编辑的单位) {
                 this.编辑属性对话框 = false;
+                if (typeof 合并后的数据.rules[编辑的单位.注册名] == 'undefined') {
+                    合并后的数据.rules[编辑的单位.注册名] = {};
+                }
                 合并后的数据.rules[编辑的单位.注册名][编辑的单位.属性名] = 编辑的单位.属性值;
                 await 合并后的数据.合并地图({});
-                this.显示详情(合并后的数据.rules[this.选中的注册名], this.选中的注册名);
+                if (this.打开单位详情页面) {
+                    this.显示详情(合并后的数据.rules[this.选中的注册名], this.选中的注册名);
+                }
                 this.刷新所有类型();
                 修改过的注册名[编辑的单位.注册名] = true;
                 if (typeof 地图数据[编辑的单位.注册名] == 'undefined') {
                     地图数据[编辑的单位.注册名] = {};
                 }
                 地图数据[编辑的单位.注册名][编辑的单位.属性名] = 编辑的单位.属性值;
+            },
+            直接删除属性不提示: async function (注册名, 属性名) {
+                delete 合并后的数据.rules[注册名][属性名];
+                await 合并后的数据.合并地图({});
+                if (this.打开单位详情页面) {
+                    this.显示详情(合并后的数据.rules[this.选中的注册名], this.选中的注册名);
+                }
+                this.刷新所有类型();
+
+                修改过的注册名[注册名] = true;
+                if (地图数据[注册名][属性名]) {
+                    delete 地图数据[注册名][属性名];
+                }
             },
             删除属性: async function (注册名, 属性名) {
                 ElementPlus.ElMessageBox.confirm('确定要删除吗?', '提示',
@@ -8064,19 +8456,13 @@ function print() { __p += __j.call(arguments, '') }
                         type: 'warning',
                     })
                     .then(async () => {
-                        delete 合并后的数据.rules[注册名][属性名];
-                        await 合并后的数据.合并地图({});
-                        this.显示详情(合并后的数据.rules[this.选中的注册名], this.选中的注册名);
-                        this.刷新所有类型();
+                        await this.直接删除属性不提示(注册名, 属性名);
                         this.编辑属性对话框 = false;
-                        修改过的注册名[注册名] = true;
-                        if (地图数据[注册名][属性名]) {
-                            delete 地图数据[注册名][属性名];
-                        }
                     })
                     .catch(() => {
                         // catch error
                     })
+
             },
             添加属性: function (注册名) {
                 if (!地图文件) {
@@ -8096,10 +8482,14 @@ function print() { __p += __j.call(arguments, '') }
                 this.添加属性对话框 = true;
             },
             保存添加的属性: async function (属性) {
-                console.log(属性);
+                if (typeof 合并后的数据.rules[属性.注册名] == 'undefined') {
+                    合并后的数据.rules[属性.注册名] = {};
+                }
                 合并后的数据.rules[属性.注册名][属性.属性名] = 属性.属性值;
                 await 合并后的数据.合并地图({});
-                this.显示详情(合并后的数据.rules[this.选中的注册名], this.选中的注册名);
+                if (this.打开单位详情页面) {
+                    this.显示详情(合并后的数据.rules[this.选中的注册名], this.选中的注册名);
+                }
                 this.刷新所有类型();
                 this.添加属性对话框 = false;
                 修改过的注册名[属性.注册名] = true;

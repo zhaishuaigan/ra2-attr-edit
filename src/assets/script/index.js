@@ -301,7 +301,7 @@
 
             },
             从盲盒生成器中删除: async function (注册名) {
-                await this.删除属性(注册名, 'manghe');
+                await this.直接删除属性不提示(注册名, 'manghe');
             },
 
 
@@ -361,13 +361,13 @@
 
                 for (var 注册名 in this.盲盒生成器的数据.建筑) {
                     if (typeof 修改后的数据['盲盒'][注册名] == 'undefined') {
-                        await this.删除属性(注册名, 'manghe');
+                        await this.直接删除属性不提示(注册名, 'manghe');
                     }
                 }
 
                 for (var 注册名 in this.盲盒生成器的数据.战车) {
                     if (typeof 修改后的数据['盲盒'][注册名] == 'undefined') {
-                        await this.删除属性(注册名, 'manghe');
+                        await this.直接删除属性不提示(注册名, 'manghe');
                     }
                 }
                 this.计算盲盒生成器的数据();
@@ -727,6 +727,19 @@
                 }
                 地图数据[编辑的单位.注册名][编辑的单位.属性名] = 编辑的单位.属性值;
             },
+            直接删除属性不提示: async function (注册名, 属性名) {
+                delete 合并后的数据.rules[注册名][属性名];
+                await 合并后的数据.合并地图({});
+                if (this.打开单位详情页面) {
+                    this.显示详情(合并后的数据.rules[this.选中的注册名], this.选中的注册名);
+                }
+                this.刷新所有类型();
+
+                修改过的注册名[注册名] = true;
+                if (地图数据[注册名][属性名]) {
+                    delete 地图数据[注册名][属性名];
+                }
+            },
             删除属性: async function (注册名, 属性名) {
                 ElementPlus.ElMessageBox.confirm('确定要删除吗?', '提示',
                     {
@@ -735,21 +748,13 @@
                         type: 'warning',
                     })
                     .then(async () => {
-                        delete 合并后的数据.rules[注册名][属性名];
-                        await 合并后的数据.合并地图({});
-                        if (this.打开单位详情页面) {
-                            this.显示详情(合并后的数据.rules[this.选中的注册名], this.选中的注册名);
-                        }
-                        this.刷新所有类型();
+                        await this.直接删除属性不提示(注册名, 属性名);
                         this.编辑属性对话框 = false;
-                        修改过的注册名[注册名] = true;
-                        if (地图数据[注册名][属性名]) {
-                            delete 地图数据[注册名][属性名];
-                        }
                     })
                     .catch(() => {
                         // catch error
                     })
+
             },
             添加属性: function (注册名) {
                 if (!地图文件) {
