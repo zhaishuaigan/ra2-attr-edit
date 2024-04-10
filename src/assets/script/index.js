@@ -215,6 +215,15 @@
                 })
                 var t = new Date().getTime();
                 var 新版本号 = await fetch('https://raw.githubusercontent.com/zhaishuaigan/ra2-attr-edit/main/dist/version.txt?t=' + t)
+                    .catch(() => { });
+                if (!新版本号 || !新版本号.ok) {
+                    加载框.close();
+                    ElementPlus.ElMessage({
+                        message: '检测更新失败, 请稍后再试',
+                        type: 'error',
+                    })
+                    return;
+                }
                 新版本号 = await 新版本号.text();
                 console.log('新版本号:', 新版本号, '当前版本号:', window.version);
                 if (新版本号 == window.version) {
@@ -231,7 +240,7 @@
                 加载框.close();
                 var 用户响应 = await ElementPlus.ElMessageBox.confirm(
                     '检测到新版本, 是否立即下载?',
-                    'Warning',
+                    '新版本提示',
                     {
                         confirmButtonText: '立即下载',
                         cancelButtonText: '取消, 我还是先用旧版本吧',
