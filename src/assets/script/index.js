@@ -207,6 +207,35 @@
 
         },
         methods: {
+            更新检测: async function () {
+                var t = new Date().getTime();
+                var 新版本号 = await fetch('https://raw.githubusercontent.com/zhaishuaigan/ra2-attr-edit/main/dist/version.txt?t=' + t)
+                新版本号 = await 新版本号.text();
+                console.log('新版本号:', 新版本号, '当前版本号:', window.version);
+                if (新版本号 == window.version) {
+                    ElementPlus.ElMessage({
+                        message: '恭喜, 当前已经是最新版本了!',
+                        type: 'success',
+                    })
+                    return;
+                }
+                var 更新地址 = 'https://raw.githubusercontent.com/zhaishuaigan/ra2-attr-edit/main/dist/%E7%BA%A2%E8%AD%A6%E5%9C%B0%E5%9B%BE%E5%8D%95%E4%BD%8D%E5%B1%9E%E6%80%A7%E6%9F%A5%E7%9C%8B%E5%99%A8.html?t=' + t;
+                var 新文件代码 = await fetch(更新地址);
+                新文件代码 = await 新文件代码.text();
+                var 用户响应 = await ElementPlus.ElMessageBox.confirm(
+                    '检测到新版本, 是否立即下载?',
+                    'Warning',
+                    {
+                        confirmButtonText: '立即下载',
+                        cancelButtonText: '取消, 我还是先用旧版本吧',
+                        type: 'warning',
+                    }
+                ).catch(() => { });
+                if (用户响应 !== 'confirm') {
+                    return;
+                }
+                this.将文本保存成本地文件(新文件代码, '红警地图单位属性查看器.html');
+            },
             添加页面关闭事件: function () {
                 window.addEventListener('beforeunload', function (e) {
                     if (Object.keys(修改过的注册名).length > 0) {

@@ -4,6 +4,9 @@
 <head>
     <meta charset="utf8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="红警地图单位属性查看器">
+    <meta name="keywords" content="红警,地图,单位,属性,查看器">
+    <meta name="version" content="{version}">
     <title>红警地图单位属性查看器</title>
     <link rel="stylesheet" href="./assets/plugin/element-plus/index.css" />
     <link rel="stylesheet" href="./assets/style/index.css">
@@ -44,6 +47,9 @@
                 content="这个按钮可以用来生成盲盒, 原理是根据单位上的自定义属性[manghe]来生成指定数量的盲盒, 生成的盲盒会自动排好注册表, 只需要保存文件, 然后用include引入即可."
                 placement="bottom">
                 <el-button type="success" @click="打开盲盒生成器()">盲盒配置与生成</el-button>
+            </el-tooltip>
+            <el-tooltip class="box-item" effect="dark" content="检测版本更新, 如果有新版本, 会自动下载!" placement="bottom">
+                <el-button type="success" @click="更新检测()">检测编辑器是否有更新</el-button>
             </el-tooltip>
         </div>
         <el-row>
@@ -617,6 +623,7 @@
 
     <div style="display: none;">
         [global]
+        <script>window.version="{version}"</script>
     </div>
 
     <script src="./assets/script/index.js"></script>

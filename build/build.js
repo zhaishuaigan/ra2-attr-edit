@@ -45,14 +45,23 @@ function includeIni() {
     }
 }
 
-
-includeCss();
-includeJs();
-includeIni();
+function version() {
+    var version = new Date().getTime().toString();
+    html = html.replace(/\{version\}/g, version);
+    fs.writeFileSync("./dist/version.txt", version);
+    console.log("打包版本号成功: " + version);
+}
 
 if (!fs.existsSync("./dist")) {
     fs.mkdirSync("./dist");
 }
+
+includeCss();
+includeJs();
+includeIni();
+version();
+
+
 fs.writeFileSync("./dist/红警地图单位属性查看器.html", html);
 // console.log('html:', html);
 console.log("build end");
