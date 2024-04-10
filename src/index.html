@@ -89,12 +89,21 @@
                     <el-descriptions title="单位属性" :column="1" border>
                         <el-descriptions-item label="操作">
                             <el-button type="success" @click="添加属性(选中的注册名)">添加属性</el-button>
+                            <el-button type="success" v-if="建筑列表[选中的注册名]"
+                                @click="打开复制单位对话框(选中的注册名, '建筑')">复制单位</el-button>
+                            <el-button type="success" v-if="士兵列表[选中的注册名]"
+                                @click="打开复制单位对话框(选中的注册名, '士兵')">复制单位</el-button>
+                            <el-button type="success" v-if="战车或飞机列表[选中的注册名]"
+                                @click="打开复制单位对话框(选中的注册名, '战车或飞机')">复制单位</el-button>
                             <el-button type="success" v-if="建筑列表[选中的注册名]" @click="打开建筑盲盒生成器(选中的注册名)">生成盲盒</el-button>
                             <el-button type="success" v-if="战车或飞机列表[选中的注册名]" @click="打开战车盲盒生成器(选中的注册名)">生成盲盒</el-button>
-                            <el-button type="success" v-if="!选中的单位['manghe']"
-                                @click="加入盲盒生成器(选中的注册名)">加入盲盒生成器</el-button>
-                            <el-button type="danger" v-if="选中的单位['manghe']"
-                                @click="从盲盒生成器中删除(选中的注册名)">从盲盒生成器中删除</el-button>
+                            <template v-if="!士兵列表[选中的注册名]">
+                                <el-button type="success" v-if="!选中的单位['manghe']"
+                                    @click="加入盲盒生成器(选中的注册名)">加入盲盒生成器</el-button>
+                                <el-button type="danger" v-if="选中的单位['manghe']"
+                                    @click="从盲盒生成器中删除(选中的注册名)">从盲盒生成器中删除</el-button>
+                            </template>
+
                         </el-descriptions-item>
                         <el-descriptions-item label="注册名">[{{选中的注册名}}]</el-descriptions-item>
                         <template v-for="(属性值, 属性名) in 要展示的数据">
@@ -484,6 +493,23 @@
             </template>
         </el-dialog>
 
+        <el-dialog v-model="复制单位对话框" :title="'复制单位 ['+复制单位的数据.选中的注册名+']' + 获取单位名字(复制单位的数据.选中的注册名)" width="500">
+            <el-form @submit.native.prevent="复制单位();">
+                <el-form-item label="新注册名">
+                    <el-input v-model="复制单位的数据.新注册名" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="新的编号">
+                    <el-input v-model="复制单位的数据.编号" autocomplete="off" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="复制单位对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="复制单位()">复制</el-button>
+                </div>
+            </template>
+        </el-dialog>
+
         <el-dialog v-model="生成建筑盲盒对话框" :title="'给 [' + 获取单位名字(生成建筑盲盒的数据.注册名) + '] 生成盲盒'" width="500">
             <el-form :model="生成建筑盲盒的数据">
                 <el-form-item label="生成数量">
@@ -548,7 +574,6 @@
             </template>
         </el-dialog>
 
-
         <el-dialog v-model="盲盒生成器对话框" title="盲盒生成器" width="600">
             <el-form :model="盲盒生成器的数据">
                 <el-form-item label="开始编号">
@@ -583,6 +608,8 @@
                 </div>
             </template>
         </el-dialog>
+
+
 
     </div>
 

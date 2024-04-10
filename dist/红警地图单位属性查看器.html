@@ -7195,12 +7195,21 @@ function print() { __p += __j.call(arguments, '') }
                     <el-descriptions title="单位属性" :column="1" border>
                         <el-descriptions-item label="操作">
                             <el-button type="success" @click="添加属性(选中的注册名)">添加属性</el-button>
+                            <el-button type="success" v-if="建筑列表[选中的注册名]"
+                                @click="打开复制单位对话框(选中的注册名, '建筑')">复制单位</el-button>
+                            <el-button type="success" v-if="士兵列表[选中的注册名]"
+                                @click="打开复制单位对话框(选中的注册名, '士兵')">复制单位</el-button>
+                            <el-button type="success" v-if="战车或飞机列表[选中的注册名]"
+                                @click="打开复制单位对话框(选中的注册名, '战车或飞机')">复制单位</el-button>
                             <el-button type="success" v-if="建筑列表[选中的注册名]" @click="打开建筑盲盒生成器(选中的注册名)">生成盲盒</el-button>
                             <el-button type="success" v-if="战车或飞机列表[选中的注册名]" @click="打开战车盲盒生成器(选中的注册名)">生成盲盒</el-button>
-                            <el-button type="success" v-if="!选中的单位['manghe']"
-                                @click="加入盲盒生成器(选中的注册名)">加入盲盒生成器</el-button>
-                            <el-button type="danger" v-if="选中的单位['manghe']"
-                                @click="从盲盒生成器中删除(选中的注册名)">从盲盒生成器中删除</el-button>
+                            <template v-if="!士兵列表[选中的注册名]">
+                                <el-button type="success" v-if="!选中的单位['manghe']"
+                                    @click="加入盲盒生成器(选中的注册名)">加入盲盒生成器</el-button>
+                                <el-button type="danger" v-if="选中的单位['manghe']"
+                                    @click="从盲盒生成器中删除(选中的注册名)">从盲盒生成器中删除</el-button>
+                            </template>
+
                         </el-descriptions-item>
                         <el-descriptions-item label="注册名">[{{选中的注册名}}]</el-descriptions-item>
                         <template v-for="(属性值, 属性名) in 要展示的数据">
@@ -7590,6 +7599,23 @@ function print() { __p += __j.call(arguments, '') }
             </template>
         </el-dialog>
 
+        <el-dialog v-model="复制单位对话框" :title="'复制单位 ['+复制单位的数据.选中的注册名+']' + 获取单位名字(复制单位的数据.选中的注册名)" width="500">
+            <el-form @submit.native.prevent="复制单位();">
+                <el-form-item label="新注册名">
+                    <el-input v-model="复制单位的数据.新注册名" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="新的编号">
+                    <el-input v-model="复制单位的数据.编号" autocomplete="off" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="复制单位对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="复制单位()">复制</el-button>
+                </div>
+            </template>
+        </el-dialog>
+
         <el-dialog v-model="生成建筑盲盒对话框" :title="'给 [' + 获取单位名字(生成建筑盲盒的数据.注册名) + '] 生成盲盒'" width="500">
             <el-form :model="生成建筑盲盒的数据">
                 <el-form-item label="生成数量">
@@ -7654,7 +7680,6 @@ function print() { __p += __j.call(arguments, '') }
             </template>
         </el-dialog>
 
-
         <el-dialog v-model="盲盒生成器对话框" title="盲盒生成器" width="600">
             <el-form :model="盲盒生成器的数据">
                 <el-form-item label="开始编号">
@@ -7689,6 +7714,8 @@ function print() { __p += __j.call(arguments, '') }
                 </div>
             </template>
         </el-dialog>
+
+
 
     </div>
 
@@ -7766,9 +7793,7 @@ function print() { __p += __j.call(arguments, '') }
             e.preventDefault();
             保存地图();
         }
-
     });
-
 
     window.app = Vue.createApp({
         el: '#app',
@@ -7815,6 +7840,13 @@ function print() { __p += __j.call(arguments, '') }
                     建筑: {},
                     战车: {},
                     生成结果: '',
+                },
+                复制单位对话框: false,
+                复制单位的数据: {
+                    选中的注册名: '',
+                    新注册名: '',
+                    注册类型: '',
+                    编号: 0,
                 },
                 选中的单位: null,
                 选中的注册名: '',
@@ -7906,8 +7938,26 @@ function print() { __p += __j.call(arguments, '') }
             if (模板) {
                 this.生成建筑盲盒的数据.模板 = 模板;
             }
+            this.添加页面关闭事件();
+
         },
         methods: {
+            添加页面关闭事件: function () {
+                window.addEventListener('beforeunload', function (e) {
+                    if (Object.keys(修改过的注册名).length > 0) {
+                        e.preventDefault();
+                        // 提示用户保存地图
+                        ElementPlus.ElMessageBox.confirm('你有未保存的修改, 是否保存?', '提示', {
+                            confirmButtonText: '保存',
+                            cancelButtonText: '不保存',
+                            type: 'warning',
+                        }).then(() => {
+                            保存地图();
+                        });
+                    }
+                });
+
+            },
             翻译属性: function (属性名) {
                 for (var 类型 in 属性翻译) {
                     for (var 属性 in 属性翻译[类型]) {
@@ -7917,6 +7967,82 @@ function print() { __p += __j.call(arguments, '') }
                     }
                 }
                 return '暂无翻译';
+            },
+            打开复制单位对话框: function (注册名, 注册类型) {
+                if (!地图文件) {
+                    ElementPlus.ElNotification({
+                        title: '提示',
+                        message: '你还没有选择地图文件, 无法使用添加属性功能!',
+                        type: 'info',
+                        duration: 3000,
+                    })
+                    return;
+                }
+                this.复制单位对话框 = true;
+                this.复制单位的数据.选中的注册名 = 注册名;
+                this.复制单位的数据.新注册名 = 注册名;
+                this.复制单位的数据.注册类型 = 注册类型;
+
+                // 根据类型自动计算编号
+                switch (注册类型) {
+                    case '建筑':
+                        var 最大编号 = Object.keys(合并后的数据.rules['BuildingTypes']).map(Number).reduce((a, b) => Math.max(a, b), 0);
+                        this.复制单位的数据.编号 = 最大编号 + 1;
+                        break;
+                    case '士兵':
+                        var 最大编号 = Object.keys(合并后的数据.rules['InfantryTypes']).map(Number).reduce((a, b) => Math.max(a, b), 0);
+                        this.复制单位的数据.编号 = 最大编号 + 1;
+                        break;
+                    case '战车或飞机':
+                        var 最大编号 = Object.keys(合并后的数据.rules['VehicleTypes']).map(Number).reduce((a, b) => Math.max(a, b), 0);
+                        this.复制单位的数据.编号 = 最大编号 + 1;
+                        break;
+                    default:
+                        this.复制单位的数据.编号 = 0;
+                        break;
+                }
+            },
+            复制单位: async function () {
+                if (合并后的数据.rules[this.复制单位的数据.新注册名]) {
+                    ElementPlus.ElNotification({
+                        title: '提示',
+                        message: '注册名已经存在请重新输入',
+                        type: 'error',
+                        duration: 3000,
+                    })
+                    return;
+                }
+                var 新单位 = JSON.parse(JSON.stringify(合并后的数据.rules[this.复制单位的数据.选中的注册名]));
+
+                合并后的数据.rules[this.复制单位的数据.新注册名] = JSON.parse(JSON.stringify(新单位));
+                地图数据[this.复制单位的数据.新注册名] = JSON.parse(JSON.stringify(新单位));
+                switch (this.复制单位的数据.注册类型) {
+                    case '建筑':
+                        合并后的数据.rules['BuildingTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
+                        地图数据['BuildingTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
+                        修改过的注册名['BuildingTypes'] = true;
+                        break;
+                    case '士兵':
+                        合并后的数据.rules['InfantryTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
+                        地图数据['InfantryTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
+                        修改过的注册名['InfantryTypes'] = true;
+                        break;
+                    case '战车或飞机':
+                        合并后的数据.rules['VehicleTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
+                        地图数据['VehicleTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
+                        修改过的注册名['VehicleTypes'] = true;
+                        break;
+                    default:
+                        break;
+                }
+                await 合并后的数据.合并地图({});
+                if (this.打开单位详情页面) {
+                    this.显示详情(合并后的数据.rules[this.复制单位的数据.新注册名], this.复制单位的数据.新注册名);
+                }
+                地图数据[this.复制单位的数据.新注册名] = JSON.parse(JSON.stringify(新单位));
+                修改过的注册名[this.复制单位的数据.新注册名] = true;
+                this.复制单位对话框 = false;
+                this.刷新所有类型();
             },
             获取所有建筑的显示名: function () {
                 var 所有建筑 = {};
@@ -8011,8 +8137,6 @@ function print() { __p += __j.call(arguments, '') }
             从盲盒生成器中删除: async function (注册名) {
                 await this.直接删除属性不提示(注册名, 'manghe');
             },
-
-
             打开盲盒生成器: function () {
                 if (typeof 合并后的数据.rules['manghe'] !== 'undefined') {
                     this.盲盒生成器的数据.模板 = JSON.parse(合并后的数据.rules['manghe']['tpl']);
@@ -8132,6 +8256,11 @@ function print() { __p += __j.call(arguments, '') }
                     注册名: 'manghe',
                     属性名: 'start',
                     属性值: this.盲盒生成器的数据.开始编号,
+                });
+                ElementPlus.ElNotification({
+                    title: '提示',
+                    message: '生成盲盒数据成功',
+                    type: 'success',
                 });
             },
 
@@ -8510,7 +8639,7 @@ function print() { __p += __j.call(arguments, '') }
                         var 所有建筑 = 合并后的数据.获取所有建筑();
                         // 获取新创建的
                         for (var i in 所有建筑) {
-                            if (this.新建筑[i]) {
+                            if (!this.rules[i] && 合并后的数据.rules[i]) {
                                 this.建筑列表[i] = JSON.parse(JSON.stringify(合并后的数据.rules[i]));;
                                 this.建筑列表[i].状态 = '新增';
                             }
@@ -8542,7 +8671,7 @@ function print() { __p += __j.call(arguments, '') }
                         var 所有士兵 = 合并后的数据.获取所有士兵();
                         // 获取新创建的
                         for (var i in 所有士兵) {
-                            if (this.新士兵[i]) {
+                            if (!this.rules[i] && 合并后的数据.rules[i]) {
                                 this.士兵列表[i] = JSON.parse(JSON.stringify(合并后的数据.rules[i]));
                                 this.士兵列表[i].状态 = '新增';
                             }
@@ -8572,7 +8701,7 @@ function print() { __p += __j.call(arguments, '') }
                         var 所有战车或飞机 = 合并后的数据.获取所有战车或飞机();
                         // 获取新创建的
                         for (var i in 所有战车或飞机) {
-                            if (this.新战车或飞机[i]) {
+                            if (!this.rules[i] && 合并后的数据.rules[i]) {
                                 this.战车或飞机列表[i] = JSON.parse(JSON.stringify(合并后的数据.rules[i]));
                                 this.战车或飞机列表[i].状态 = '新增';
                             }
