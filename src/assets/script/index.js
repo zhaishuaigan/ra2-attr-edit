@@ -22,6 +22,11 @@
         }
 
         for (var i in 修改过的注册名) {
+            if (!地图数据[i]) {
+                // 删除的单位
+                地图内容 = 地图内容.replace(new RegExp('\\[' + i + '\\][\\s\\S]*?([\\[]|$)'), '');
+                continue;
+            }
             var 新单位数据 = {}
             新单位数据[i] = 地图数据[i];
             var 新单位内容 = ini.stringify(新单位数据);
@@ -277,6 +282,65 @@
                     }
                 }
                 return '暂无翻译';
+            },
+            删除单位: async function (注册名) {
+                if (!地图文件) {
+                    ElementPlus.ElNotification({
+                        title: '提示',
+                        message: '你还没有选择地图文件, 不能使用删除功能!',
+                        type: 'info',
+                        duration: 3000,
+                    });
+                    return;
+                }
+
+                if (this.rules[注册名]) {
+                    // 系统单位, 不能删除
+                    ElementPlus.ElNotification({
+                        title: '提示',
+                        message: '系统单位不能删除',
+                        type: 'info',
+                        duration: 3000,
+                    });
+                    return;
+                }
+                var 用户响应 = await ElementPlus.ElMessageBox.confirm('确定删除这个单位吗?', '删除单位', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                }).catch(() => { });
+                if (用户响应 !== 'confirm') {
+                    return;
+                }
+                // 如果单位是建筑, 则删除建筑类型里面的注册名
+                if (地图数据['BuildingTypes']) {
+                    for (var i in 地图数据['BuildingTypes']) {
+                        if (地图数据['BuildingTypes'][i] == 注册名) {
+                            delete 地图数据['BuildingTypes'][i];
+                        }
+                    }
+                }
+                // 如果单位是士兵, 则删除士兵类型里面的注册名
+                if (地图数据['InfantryTypes']) {
+                    for (var i in 地图数据['InfantryTypes']) {
+                        if (地图数据['InfantryTypes'][i] == 注册名) {
+                            delete 地图数据['InfantryTypes'][i];
+                        }
+                    }
+                }
+                // 如果单位是战车或飞机, 则删除战车或飞机类型里面的注册名
+                if (地图数据['VehicleTypes']) {
+                    for (var i in 地图数据['VehicleTypes']) {
+                        if (地图数据['VehicleTypes'][i] == 注册名) {
+                            delete 地图数据['VehicleTypes'][i];
+                        }
+                    }
+                }
+                delete 地图数据[注册名];
+                delete 合并后的数据.rules[注册名];
+                修改过的注册名[注册名] = true;
+                this.刷新所有类型();
+                this.打开单位详情页面 = false;
             },
             打开复制单位对话框: function (注册名, 注册类型) {
                 if (!地图文件) {

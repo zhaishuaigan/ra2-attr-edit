@@ -109,6 +109,7 @@
                                 <el-button type="danger" v-if="选中的单位['manghe']"
                                     @click="从盲盒生成器中删除(选中的注册名)">从盲盒生成器中删除</el-button>
                             </template>
+                            <el-button type="danger" @click="删除单位(选中的注册名)">删除单位</el-button>
 
                         </el-descriptions-item>
                         <el-descriptions-item label="注册名">[{{选中的注册名}}]</el-descriptions-item>
