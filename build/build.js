@@ -63,5 +63,6 @@ version();
 
 
 fs.writeFileSync("./dist/红警地图单位属性查看器.html", html);
+fs.writeFileSync("./docs/index.html", html);
 // console.log('html:', html);
 console.log("build end");
