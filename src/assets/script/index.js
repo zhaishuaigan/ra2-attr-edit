@@ -393,16 +393,25 @@
                 switch (this.复制单位的数据.注册类型) {
                     case '建筑':
                         合并后的数据.rules['BuildingTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
+                        if (!地图数据['BuildingTypes']) {
+                            地图数据['BuildingTypes'] = {};
+                        }
                         地图数据['BuildingTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
                         修改过的注册名['BuildingTypes'] = true;
                         break;
                     case '士兵':
                         合并后的数据.rules['InfantryTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
+                        if (!地图数据['InfantryTypes']) {
+                            地图数据['InfantryTypes'] = {};
+                        }
                         地图数据['InfantryTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
                         修改过的注册名['InfantryTypes'] = true;
                         break;
                     case '战车或飞机':
                         合并后的数据.rules['VehicleTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
+                        if (!地图数据['VehicleTypes']) {
+                            地图数据['VehicleTypes'] = {};
+                        }
                         地图数据['VehicleTypes'][this.复制单位的数据.编号] = this.复制单位的数据.新注册名;
                         修改过的注册名['VehicleTypes'] = true;
                         break;
