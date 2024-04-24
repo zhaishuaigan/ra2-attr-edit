@@ -36,7 +36,7 @@
                 地图内容 += '\n\n' + 新单位内容;
             } else {
                 // 修改单位
-                地图内容 = 地图内容.replace(new RegExp('\\[' + i + '\\][\\s\\S]*?([\\[]|$)'), 新单位内容 + '\n$1');
+                地图内容 = 地图内容.replace(new RegExp('\\[' + i + '\\][\\s\\S]*?(\n\\[|$)'), 新单位内容 + '\n$1');
             }
         }
 
@@ -90,7 +90,7 @@
                 生成建筑盲盒对话框: false,
                 生成建筑盲盒的数据: {
                     注册名: '',
-                    模板: '[{注册名}{编号}]\nUIName={显示名}\nName={注册名}\nDeploysInto={注册名}\nGroupAs={注册名}\nCost=1000\nSize=6\nArmor=light\nImage=TRUCKB\nOwner=British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs,YuriCountry\nSight=5\nSpeed=4\nCrewed=no\nPoints=40\nTurret=no\nWeight=2\nCrusher=no\nPrimary=none\nSoylent=100\nCategory=AFV\nDieSound=GenVehicleDie\nStrength=200\nExplosion=TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60\nLocomotor={4A582741-9839-11d1-B709-00A024DDAFD1}\nMaxDebris=2\nSecondary=none\nTechLevel=-1\nTrainable=no\nVoiceMove=\nCrushSound=TankCrush\nCrateGoodie=yes\nDebrisTypes=TIRE\nSelfHealing=no\nThreatPosed=50\nVoiceAttack=GenAllVehicleAttackCommand\nVoiceSelect=GenAllVehicleSelect\nCarriesCrate=yes\nMovementZone=Normal\nInsignificant=no\nVoiceFeedback=\nDebrisMaximums=4\nDamageParticleSystems=SparkSys,SmallGreySSys\nAllowedToStartInMultiplayer=no',
+                    模板: '',
                     生成数量: 10,
                     开始编号: 200,
                     生成结果: '',
@@ -104,7 +104,8 @@
                 },
                 盲盒生成器对话框: false,
                 盲盒生成器的数据: {
-                    模板: '[{注册名}{编号}]\nUIName={显示名}\nName={注册名}\nDeploysInto={注册名}\nGroupAs={注册名}\nCost=1000\nSize=6\nArmor=light\nImage=TRUCKB\nOwner=British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs,YuriCountry\nSight=5\nSpeed=4\nCrewed=no\nPoints=40\nTurret=no\nWeight=2\nCrusher=no\nPrimary=none\nSoylent=100\nCategory=AFV\nDieSound=GenVehicleDie\nStrength=200\nExplosion=TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60\nLocomotor={4A582741-9839-11d1-B709-00A024DDAFD1}\nMaxDebris=2\nSecondary=none\nTechLevel=-1\nTrainable=no\nVoiceMove=\nCrushSound=TankCrush\nCrateGoodie=yes\nDebrisTypes=TIRE\nSelfHealing=no\nThreatPosed=50\nVoiceAttack=GenAllVehicleAttackCommand\nVoiceSelect=GenAllVehicleSelect\nCarriesCrate=yes\nMovementZone=Normal\nInsignificant=no\nVoiceFeedback=\nDebrisMaximums=4\nDamageParticleSystems=SparkSys,SmallGreySSys\nAllowedToStartInMultiplayer=no',
+                    模板: '',
+                    默认模板: '[{注册名}{编号}]\nUIName={显示名}\nName={注册名}\nDeploysInto={注册名}\nGroupAs={注册名}\nCost=1000\nSize=6\nArmor=light\nImage=TRUCKB\nOwner=British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs,YuriCountry\nSight=5\nSpeed=4\nCrewed=no\nPoints=40\nTurret=no\nWeight=2\nCrusher=no\nPrimary=none\nSoylent=100\nCategory=AFV\nDieSound=GenVehicleDie\nStrength=200\nExplosion=TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60\nLocomotor={4A582741-9839-11d1-B709-00A024DDAFD1}\nMaxDebris=2\nSecondary=none\nTechLevel=-1\nTrainable=no\nVoiceMove=\nCrushSound=TankCrush\nCrateGoodie=yes\nDebrisTypes=TIRE\nSelfHealing=no\nThreatPosed=50\nVoiceAttack=GenAllVehicleAttackCommand\nVoiceSelect=GenAllVehicleSelect\nCarriesCrate=yes\nMovementZone=Normal\nInsignificant=no\nVoiceFeedback=\nDebrisMaximums=4\nDamageParticleSystems=SparkSys,SmallGreySSys\nAllowedToStartInMultiplayer=no',
                     开始编号: 200,
                     已有配置: '',
                     建筑: {},
@@ -203,11 +204,6 @@
             // this.获取所有武器();
             // this.获取所有建筑的显示名();
 
-            // 从本地缓存读取模板
-            var 模板 = localStorage.getItem('建筑盲盒的模板');
-            if (模板) {
-                this.生成建筑盲盒的数据.模板 = 模板;
-            }
             this.添加页面关闭事件();
 
         },
@@ -230,7 +226,7 @@
                     return;
                 }
                 新版本号 = await 新版本号.text();
-                console.log('新版本号:', 新版本号, '当前版本号:', window.version);
+                // console.log('新版本号:', 新版本号, '当前版本号:', window.version);
                 if (新版本号 == window.version) {
                     加载框.close();
                     ElementPlus.ElMessage({
@@ -443,7 +439,40 @@
             打开建筑盲盒生成器: function (注册名) {
                 this.生成建筑盲盒对话框 = true;
                 this.生成建筑盲盒的数据.注册名 = 注册名;
+                var 属性名 = 'jianzhu_' + 注册名 + '_tpl';
+                if (地图数据 && 地图数据['manghe'] && 地图数据['manghe'][属性名]) {
+                    this.生成建筑盲盒的数据.模板 = JSON.parse(地图数据['manghe'][属性名]);
+                } else {
+                    this.生成建筑盲盒的数据.模板 = this.盲盒生成器的数据.默认模板;
+                }
                 this.生成建筑盲盒的数据.生成结果 = '';
+            },
+            重置建筑模板: async function () {
+                var 注册名 = this.生成建筑盲盒的数据.注册名;
+                this.生成建筑盲盒的数据.模板 = this.盲盒生成器的数据.默认模板;
+                var 属性名 = 'jianzhu_' + 注册名 + '_tpl';
+                if (地图数据 && 地图数据['manghe'] && 地图数据['manghe'] && 地图数据['manghe'][属性名]) {
+                    await this.直接删除属性不提示('manghe', 属性名);
+                }
+            },
+            保存建筑盲盒的模板: async function () {
+                var 注册名 = this.生成建筑盲盒的数据.注册名;
+                if (!地图数据) {
+                    ElementPlus.ElNotification({
+                        title: '提示',
+                        message: '你还没有选择地图文件, 无法使用保存模板功能!',
+                        type: 'info',
+                        duration: 3000,
+                    });
+                    return;
+                }
+                var 属性名 = 'jianzhu_' + 注册名 + '_tpl';
+                await this.保存属性({
+                    注册名: 'manghe',
+                    属性名: 属性名,
+                    属性值: JSON.stringify(this.生成建筑盲盒的数据.模板),
+                });
+                保存地图();
             },
             根据参数生成建筑盲盒数据: function () {
                 var 参数 = this.生成建筑盲盒的数据;
@@ -465,9 +494,6 @@
                 this.生成建筑盲盒的数据.生成结果 = 生成结果;
                 this.生成战车盲盒的数据.开始编号 = 结束编号;
                 this.生成建筑盲盒的数据.开始编号 = 结束编号;
-                // 缓存模板写入本地缓存
-                localStorage.setItem('建筑盲盒的模板', this.生成建筑盲盒的数据.模板);
-
             },
             打开战车盲盒生成器: function (注册名) {
                 this.生成战车盲盒对话框 = true;
@@ -522,8 +548,16 @@
             },
             打开盲盒生成器: function () {
                 if (typeof 合并后的数据.rules['manghe'] !== 'undefined') {
-                    this.盲盒生成器的数据.模板 = JSON.parse(合并后的数据.rules['manghe']['tpl']);
-                    this.盲盒生成器的数据.开始编号 = 合并后的数据.rules['manghe']['start'];
+                    if (合并后的数据.rules['manghe']['tpl']) {
+                        this.盲盒生成器的数据.模板 = JSON.parse(合并后的数据.rules['manghe']['tpl']);
+                    } else {
+                        this.盲盒生成器的数据.模板 = this.盲盒生成器的数据.默认模板;
+                    }
+                    if (合并后的数据.rules['manghe']['start']) {
+                        this.盲盒生成器的数据.开始编号 = 合并后的数据.rules['manghe']['start'];
+                    }
+                } else {
+                    this.盲盒生成器的数据.模板 = this.盲盒生成器的数据.默认模板;
                 }
                 this.计算盲盒生成器的数据();
                 this.盲盒生成器对话框 = true;
@@ -598,9 +632,21 @@
                     var 结束编号 = 开始编号 + 数量;
                     for (var j = 开始编号; j < 结束编号; j++) {
                         注册表['VehicleTypes'][开始编号] = 注册名 + 开始编号;
-                        生成结果 += 模板.replace(/\{注册名\}/g, i)
-                            .replace(/\{显示名\}/g, 所有显示名[注册名])
-                            .replace('{编号}', 开始编号) + '\n\n';
+
+                        var 模板标识 = 'jianzhu_' + 注册名 + '_tpl';
+                        if (地图数据 && 地图数据['manghe'] && 地图数据['manghe'][模板标识]) {
+                            // 有自定义模板就使用自定义的模板生成
+                            var 自定义模板 = JSON.parse(地图数据['manghe'][模板标识]);
+                            生成结果 += 自定义模板.replace(/\{注册名\}/g, i)
+                                .replace(/\{显示名\}/g, 所有显示名[注册名])
+                                .replace('{编号}', 开始编号) + '\n\n';
+                        } else {
+                            // 没有自定义模板就使用通用模板
+                            生成结果 += 模板.replace(/\{注册名\}/g, i)
+                                .replace(/\{显示名\}/g, 所有显示名[注册名])
+                                .replace('{编号}', 开始编号) + '\n\n';
+                        }
+
                         开始编号++;
                     }
                 }
@@ -645,6 +691,34 @@
                     message: '生成盲盒数据成功',
                     type: 'success',
                 });
+            },
+            保存盲盒模板: async function () {
+                await this.保存属性({
+                    注册名: 'manghe',
+                    属性名: 'tpl',
+                    属性值: JSON.stringify(this.盲盒生成器的数据.模板),
+                });
+                await this.保存属性({
+                    注册名: 'manghe',
+                    属性名: 'start',
+                    属性值: this.盲盒生成器的数据.开始编号,
+                });
+                保存地图();
+            },
+            使用默认模板: function () {
+                this.盲盒生成器的数据.模板 = this.盲盒生成器的数据.默认模板;
+            },
+            读取盲盒模板: function () {
+                if (!地图数据 || !地图数据['manghe']) {
+                    ElementPlus.ElNotification({
+                        title: '提示',
+                        message: '当前地图没有自定义盲盒模板, 无法载入!',
+                        type: 'warning',
+                    });
+                    return;
+                }
+
+                this.盲盒生成器的数据.模板 = JSON.parse(地图数据['manghe']['tpl']);
             },
 
             将文本保存成本地文件: function (文本, 文件名) {
@@ -1005,6 +1079,9 @@
                 this.刷新所有类型();
                 this.添加属性对话框 = false;
                 修改过的注册名[属性.注册名] = true;
+                if (!地图数据) {
+                    地图数据 = {};
+                }
                 if (!地图数据[属性.注册名]) {
                     地图数据[属性.注册名] = {};
                 }

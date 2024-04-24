@@ -517,7 +517,7 @@
             </template>
         </el-dialog>
 
-        <el-dialog v-model="生成建筑盲盒对话框" :title="'给 [' + 获取单位名字(生成建筑盲盒的数据.注册名) + '] 生成盲盒'" width="500">
+        <el-dialog v-model="生成建筑盲盒对话框" :title="'给 [' + 获取单位名字(生成建筑盲盒的数据.注册名) + '] 生成盲盒'" width="600">
             <el-form :model="生成建筑盲盒的数据">
                 <el-form-item label="生成数量">
                     <el-input v-model="生成建筑盲盒的数据.生成数量" autocomplete="off" />
@@ -537,6 +537,8 @@
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
+                    <el-button @click="保存建筑盲盒的模板()">保存模板</el-button>
+                    <el-button @click="重置建筑模板()">使用默认模板</el-button>
                     <el-button @click="生成建筑盲盒对话框 = false">取消</el-button>
                     <el-button type="primary" @click="根据参数生成建筑盲盒数据()">
                         生成
@@ -602,6 +604,8 @@
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
+                    <el-button @click="保存盲盒模板()">保存模板</el-button>
+                    <el-button @click="使用默认模板()">使用默认模板</el-button>
                     <el-button @click="盲盒生成器对话框 = false">取消</el-button>
                     <el-button type="primary" @click="生成盲盒数据()">
                         生成
@@ -624,7 +628,7 @@
 
     <div style="display: none;">
         [global]
-        <script>window.version="{version}"</script>
+        <script>window.version = "{version}"</script>
     </div>
 
     <script src="./assets/script/index.js"></script>
