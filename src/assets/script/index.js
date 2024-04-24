@@ -693,6 +693,14 @@
                 });
             },
             保存盲盒模板: async function () {
+                if (!地图数据) {
+                    ElementPlus.ElNotification({
+                        title: '提示',
+                        message: '选择地图后才能保存模板',
+                        type: 'warning',
+                    });
+                    return;
+                }
                 await this.保存属性({
                     注册名: 'manghe',
                     属性名: 'tpl',
