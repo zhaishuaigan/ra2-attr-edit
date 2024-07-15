@@ -134,6 +134,19 @@
                 drawerSize: "50%",
                 activeName: 'attr',
                 激活选项卡: 'attr',
+                复制武器对话框: false,
+                要复制的武器: {
+                    注册名: '',
+                    新注册名: '',
+                    武器属性名: '',
+                    原武器名: '',
+                    新武器名: '',
+                    新抛射体: '',
+                    新弹头名: '',
+                },
+                查看其他属性对话框: false,
+                要查看其他属性的注册名: '',
+                查看历史: [],
             }
         },
         computed: {
@@ -923,13 +936,6 @@
                 地图文件 = 文件;
                 地图数据 = ini.parse(文件内容);
                 地图内容 = 文件内容;
-
-
-                // var 写入文件 = await 文件.createWritable();
-                // await 写入文件.write("我靠, 牛掰!");
-                // await 写入文件.close();
-                // console.log("写入成功");
-
             },
             追加配置: async function () {
                 try {
@@ -995,6 +1001,27 @@
                 合并后的数据.合并中文翻译(转换后的翻译);
                 this.刷新所有类型();
             },
+            基础属性设置: function () {
+                this.显示详情(合并后的数据.rules['General'], 'General');
+            },
+            箱子属性设置: function () {
+                this.显示详情(合并后的数据.rules['CrateRules'], 'CrateRules');
+            },
+            查看其他属性: function () {
+                this.查看其他属性对话框 = true;
+            },
+            显示指定单位: function (注册名) {
+                if (!注册名) {
+                    this.error('请输入注册名');
+                    return;
+                }
+                if (!合并后的数据.rules[注册名]) {
+                    this.error('注册名 [' + 注册名 + '] 不存在!');
+                    return;
+                }
+                this.显示详情(合并后的数据.rules[注册名], 注册名);
+                this.查看其他属性对话框 = false;
+            },
             编辑属性: function (注册名, 属性名, 属性值) {
                 if (!地图文件) {
                     ElementPlus.ElNotification({
@@ -1014,20 +1041,26 @@
             },
             保存属性: async function (编辑的单位) {
                 this.编辑属性对话框 = false;
-                if (typeof 合并后的数据.rules[编辑的单位.注册名] == 'undefined') {
-                    合并后的数据.rules[编辑的单位.注册名] = {};
+                this.暂存属性(编辑的单位.注册名, 编辑的单位.属性名, 编辑的单位.属性值);
+                this.刷新显示数据();
+            },
+            暂存属性: async function (注册名, 属性名, 属性值) {
+                if (typeof 合并后的数据.rules[注册名] == 'undefined') {
+                    合并后的数据.rules[注册名] = {};
                 }
-                合并后的数据.rules[编辑的单位.注册名][编辑的单位.属性名] = 编辑的单位.属性值;
+                合并后的数据.rules[注册名][属性名] = 属性值;
+                修改过的注册名[注册名] = true;
+                if (typeof 地图数据[注册名] == 'undefined') {
+                    地图数据[注册名] = {};
+                }
+                地图数据[注册名][属性名] = 属性值;
+            },
+            刷新显示数据: async function () {
                 await 合并后的数据.合并地图({});
+                this.刷新所有类型();
                 if (this.打开单位详情页面) {
                     this.显示详情(合并后的数据.rules[this.选中的注册名], this.选中的注册名);
                 }
-                this.刷新所有类型();
-                修改过的注册名[编辑的单位.注册名] = true;
-                if (typeof 地图数据[编辑的单位.注册名] == 'undefined') {
-                    地图数据[编辑的单位.注册名] = {};
-                }
-                地图数据[编辑的单位.注册名][编辑的单位.属性名] = 编辑的单位.属性值;
             },
             直接删除属性不提示: async function (注册名, 属性名) {
                 delete 合并后的数据.rules[注册名][属性名];
@@ -1206,10 +1239,142 @@
                 delete this.要展示的数据.UIName2;
                 this.选中的注册名 = 注册名;
                 this.打开单位详情页面 = true;
+                this.记录历史(注册名);
             },
+            记录历史: function (历史) {
+                if (!this.查看历史.includes(历史)) {
+                    this.查看历史.unshift(历史);
+                }
+            },
+            返回查看历史: function () {
+                if (this.查看历史.length <= 1) {
+                    return;
+                }
+                this.查看历史.shift();
+                var 历史 = this.查看历史.shift();
+                if (历史) {
+                    this.显示指定单位(历史);
+                }
+            },
+            // 返回查看历史: function () {
+            //     var 当前历史位置 = this.查看历史.indexOf(this.选中的注册名);
+            //     if (当前历史位置 < this.查看历史.length - 1) {
+            //         this.显示指定单位(this.查看历史[当前历史位置 + 1]);
+            //     }
+            // },
+            // 前进查看历史: function () {
+            //     var 当前历史位置 = this.查看历史.indexOf(this.选中的注册名);
+            //     if (当前历史位置 > 0) {
+            //         this.显示指定单位(this.查看历史[当前历史位置 - 1]);
+            //     }
+            // },
             保存地图: function () {
                 保存地图();
             },
+            打开复制武器对话框: function (注册名, 武器属性名) {
+                if (!地图数据) {
+                    this.error('请先打开一个地图, 才能使用武器复制功能, 因为武器的修改需要保存到地图文件中!');
+                    return;
+                }
+                var 单位 = 合并后的数据.rules[注册名];
+                if (!单位) {
+                    this.error('该单位不存在');
+                    return;
+                }
+                var 武器 = 合并后的数据.rules[单位[武器属性名]];
+                if (!武器) {
+                    this.error('该单位武器 [' + 单位[武器属性名] + '] 不存在, 无法复制!');
+                    return;
+                }
+                if (!武器.Warhead) {
+                    this.error('武器 [' + 单位[武器属性名] + '] 的弹头未指定, 无法复制!');
+                    return;
+                }
+                if (!武器.Projectile) {
+                    this.error('武器 [' + 单位[武器属性名] + '] 的抛射体未指定, 无法复制!');
+                    return;
+                }
+                var 弹头 = 合并后的数据.rules[武器.Warhead];
+                if (!弹头) {
+                    this.error('武器 [' + 单位[武器属性名] + '] 的弹头 [' + 武器.Warhead + '] 没有实现, 无法进行复制!');
+                    return;
+                }
+                var 抛射体 = 合并后的数据.rules[武器.Projectile];
+                if (!抛射体) {
+                    this.error('武器 [' + 单位[武器属性名] + '] 的抛射体 [' + 武器.Projectile + '] 没有实现, 无法进行复制!');
+                    return;
+                }
+                console.log('单位:', 单位);
+                this.复制武器对话框 = true;
+                this.要复制的武器.注册名 = 注册名;
+                this.要复制的武器.武器属性名 = 武器属性名;
+                this.要复制的武器.原武器名 = 单位[武器属性名];
+                this.要复制的武器.新武器名 = 单位[武器属性名] + "_Copy";
+                this.要复制的武器.新弹头名 = 武器.Warhead + "_Copy";
+                this.要复制的武器.新抛射体 = 武器.Projectile + '_Copy';
+            },
+            复制并修改武器: function () {
+                this.只复制武器();
+                this.保存属性({
+                    注册名: this.要复制的武器.注册名,
+                    属性名: this.要复制的武器.武器属性名,
+                    属性值: this.要复制的武器.新武器名,
+                });
+            },
+            只复制武器: function () {
+                var 复制完成 = this.开始复制武器(this.要复制的武器.原武器名, this.要复制的武器.新武器名, this.要复制的武器.新弹头名, this.要复制的武器.新抛射体)
+                if (复制完成) {
+                    this.复制武器对话框 = false;
+                }
+            },
+            开始复制武器: function (武器名, 新武器名, 新弹头名, 新抛射体) {
+                console.log('合并后的数据:', 合并后的数据);
+                var 武器 = 合并后的数据.rules[武器名];
+                if (!武器) {
+                    this.error('该单位武器 [' + 单位[武器属性名] + '] 不存在, 无法复制!');
+                    return;
+                }
+                if (!武器.Warhead) {
+                    this.error('武器 [' + 单位[武器属性名] + '] 的弹头未指定, 无法复制!');
+                    return;
+                }
+                if (!武器.Projectile) {
+                    this.error('武器 [' + 单位[武器属性名] + '] 的抛射体未指定, 无法复制!');
+                    return;
+                }
+                var 弹头 = 合并后的数据.rules[武器.Warhead];
+                if (!弹头) {
+                    this.error('武器 [' + 单位[武器属性名] + '] 的弹头 [' + 武器.Warhead + '] 没有实现, 无法进行复制!');
+                    return;
+                }
+                var 抛射体 = 合并后的数据.rules[武器.Projectile];
+                if (!抛射体) {
+                    this.error('武器 [' + 单位[武器属性名] + '] 的抛射体 [' + 武器.Projectile + '] 没有实现, 无法进行复制!');
+                    return;
+                }
+
+                this.复制武器对话框 = false;
+                for (var 属性名 in 武器) {
+                    console.log(属性名, 武器[属性名]);
+                    if (typeof 武器[属性名] != 'object') {
+                        this.暂存属性(新武器名, 属性名, 武器[属性名]);
+                    }
+                }
+
+                for (var 属性名 in 弹头) {
+                    this.暂存属性(新弹头名, 属性名, 弹头[属性名]);
+                }
+
+                for (var 属性名 in 抛射体) {
+                    this.暂存属性(新抛射体, 属性名, 抛射体[属性名]);
+                }
+                this.暂存属性(新武器名, 'Warhead', 新弹头名);
+                this.暂存属性(新武器名, 'Projectile', 新抛射体);
+                return true;
+            },
+            error: function (e) {
+                ElementPlus.ElMessage.error(e);
+            }
         }
     }).use(ElementPlus).mount('#app');
 })();
