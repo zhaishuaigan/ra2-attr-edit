@@ -45,9 +45,13 @@
             <el-tooltip class="box-item" effect="dark" content="箱子属性设置" placement="bottom">
                 <el-button type="success" @click="箱子属性设置()">箱子属性设置</el-button>
             </el-tooltip>
-            <el-tooltip class="box-item" effect="dark" content="箱子属性设置" placement="bottom">
+            <el-tooltip class="box-item" effect="dark" content="查看其他属性, 输入单位名, 可以查看该单位的全部属性" placement="bottom">
                 <el-button type="success" @click="查看其他属性()">查看其他属性</el-button>
             </el-tooltip>
+            <el-tooltip class="box-item" effect="dark" content="添加注册名" placement="bottom">
+                <el-button type="success" @click="添加注册名对话框 = true">添加注册名</el-button>
+            </el-tooltip>
+
             <el-tooltip v-if="文件名 != ''" class="box-item" effect="dark"
                 content="保存地图 (Ctrl + S) , 将直接覆盖打开的地图, 记得提前备份, 说不定一不小心就把地图搞坏了!" placement="bottom">
                 <el-button type="success" @click="保存地图()">保存地图 [{{文件名}}]</el-button>
@@ -675,6 +679,19 @@
                 <div class="dialog-footer">
                     <el-button type="success" @click="显示指定单位(要查看其他属性的注册名)">确定</el-button>
                     <el-button @click="查看其他属性对话框 = false">取消</el-button>
+                </div>
+            </template>
+        </el-dialog>
+        <el-dialog v-model="添加注册名对话框" title="添加注册名" width="600">
+            <el-form>
+                <el-form-item label="注册名">
+                    <el-input v-model="要添加的注册名" autocomplete="off" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button type="success" @click="添加注册名(要添加的注册名)">确定</el-button>
+                    <el-button @click="添加注册名对话框 = false">取消</el-button>
                 </div>
             </template>
         </el-dialog>
