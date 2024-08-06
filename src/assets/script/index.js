@@ -519,14 +519,16 @@
                 var 参数 = this.生成战车盲盒的数据;
                 // 完全复制选中的战车, 然后修改模型
                 var 单位 = JSON.parse(JSON.stringify(合并后的数据.rules[参数.注册名]));
-                单位.GroupAs = 参数.注册名;
-                单位.CrateGoodie = 'yes';
-                delete 单位.UIName2;
                 for (var i in 单位) {
                     if (typeof 单位[i] != 'string') {
                         delete 单位[i];
                     }
                 }
+                单位.GroupAs = 参数.注册名;
+                单位.CrateGoodie = 'yes';
+                单位.TechLevel = '11';
+                console.log('战车[' + 参数.注册名 + ']: ', 单位);
+                delete 单位.UIName2;
                 var 注册表 = {};
                 注册表['VehicleTypes'] = {};
                 var 新单位列表 = {};
@@ -672,6 +674,7 @@
                     var 单位 = JSON.parse(JSON.stringify(合并后的数据.rules[注册名]));
                     单位.GroupAs = i;
                     单位.CrateGoodie = 'yes';
+                    单位.TechLevel = '11';
                     if (typeof 单位.Image === 'undefined') {
                         单位.Image = 注册名;
                     }
