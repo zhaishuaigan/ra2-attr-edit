@@ -839,12 +839,16 @@
                 (async () => {
                     var 提示数据 = await 配置.加载('value.ini');
                     var 所有提示词 = [];
-                    var 提示类型 = '';
+                    var 提示类型 = [];
                     var 返回结果 = [];
                     for (var 类型 in 提示数据) {
+                        if (类型.toLowerCase().includes(搜索词.toLowerCase())) {
+                            提示类型.push(类型);
+                            continue;
+                        }
                         for (var 属性 in 提示数据[类型]) {
                             if (属性.toLowerCase() == 搜索词.toLowerCase()) {
-                                提示类型 = 类型;
+                                提示类型.push(类型);
                                 break;
                             }
                             所有提示词.push({
@@ -857,12 +861,14 @@
                         回调函数(所有提示词);
                         return;
                     }
-                    if (提示类型) {
-                        for (var 属性 in 提示数据[提示类型]) {
-                            返回结果.push({
-                                value: 属性,
-                                zh: 提示数据[提示类型][属性],
-                            });
+                    if (提示类型.length > 0) {
+                        for (var 类型 of 提示类型) {
+                            for (var 属性 in 提示数据[类型]) {
+                                返回结果.push({
+                                    value: 属性,
+                                    zh: 提示数据[类型][属性],
+                                });
+                            }
                         }
                     } else {
                         for (var 属性 of 所有提示词) {
