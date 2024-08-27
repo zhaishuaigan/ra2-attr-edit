@@ -34,8 +34,18 @@
             })
             return;
         }
+        
+        if (JSON.stringify(修改过的注册名) === '{}') {
+            ElementPlus.ElNotification({
+                title: '提示',
+                message: '没有修改过的单位',
+                type: 'info',
+                duration: 3000,
+            })
+            return;
+        }
         await 创建历史记录();
-
+        
         for (var i in 修改过的注册名) {
             if (!地图数据[i]) {
                 // 删除的单位
