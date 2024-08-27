@@ -28,7 +28,8 @@
     </div>
     <div id="app" style="display: none;">
         <div style=" display: flex; justify-content: center; align-items: center; padding: 20px;">
-            <el-tooltip class="box-item" effect="dark" content="选择一个地图文件, 可以标记出新增和修改过的单位" placement="bottom">
+            <el-tooltip class="box-item" effect="dark" content="选择一个包含地图文件的目录, 可以自动识别地图文件, 每次保存也会有备份."
+                placement="bottom">
                 <el-button type="success" @click="选择地图()">选择地图查看</el-button>
             </el-tooltip>
             <el-tooltip class="box-item" effect="dark" content="如果你有单独写好的功能, 可以使用这个按钮把它合并到当前地图里面" placement="bottom">
@@ -692,6 +693,16 @@
                 <div class="dialog-footer">
                     <el-button type="success" @click="添加注册名(要添加的注册名)">确定</el-button>
                     <el-button @click="添加注册名对话框 = false">取消</el-button>
+                </div>
+            </template>
+        </el-dialog>
+        <el-dialog v-model="选择地图文件对话框" title="识别到多个地图文件, 请选择一个进行加载" width="600">
+            <div v-for="文件 in 地图文件列表" style="padding: 5px">
+                <el-button @click="指定地图文件(文件)" type="primary">{{文件.name}}</el-button>
+            </div>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="选择地图文件对话框 = false">取消</el-button>
                 </div>
             </template>
         </el-dialog>

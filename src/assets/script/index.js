@@ -5,12 +5,26 @@
     await 合并后的数据.初始化();
     var 属性翻译 = await 配置.加载('attr.ini');
 
+    var 项目目录 = null;
+
     var 修改过的注册名 = {};
     var 地图文件 = null;
     var 地图数据 = null;
     var 地图内容 = '';
 
-    function 保存地图() {
+
+    async function 创建历史记录() {
+        var 时间 = new Date().toLocaleString().replace(/\//g, '-').replace(/:/g, '.');
+        var 后缀名 = 地图文件.name.substring(地图文件.name.lastIndexOf('.'));
+        var 历史记录文件名 = 地图文件.name.replace(后缀名, " 备份时间为 " + 时间 + 后缀名);
+        var 历史记录目录 = await 项目目录.getDirectoryHandle('历史记录', { create: true });
+        var 老文件内容 = await 地图文件.getFile();
+        var 历史记录文件 = await (await 历史记录目录.getFileHandle(历史记录文件名, { create: true })).createWritable();
+        await 历史记录文件.write(老文件内容);
+        await 历史记录文件.close();
+    }
+
+    async function 保存地图() {
         if (!地图文件) {
             ElementPlus.ElNotification({
                 title: '提示',
@@ -20,6 +34,7 @@
             })
             return;
         }
+        await 创建历史记录();
 
         for (var i in 修改过的注册名) {
             if (!地图数据[i]) {
@@ -149,6 +164,8 @@
                 查看历史: [],
                 添加注册名对话框: false,
                 要添加的注册名: '',
+                选择地图文件对话框: false,
+                地图文件列表: [],
             }
         },
         computed: {
@@ -910,14 +927,56 @@
                 return "已修改";
             },
             选择地图: async function () {
+                var 目录 = null;
                 try {
-                    var [文件] = await window.showOpenFilePicker()
-                    if (!文件) {
-                        return;
-                    }
-                } catch (e) {
-                    console.log('没有选择地图: ', e);
+                    目录 = await window.showDirectoryPicker({ mode: 'readwrite' });
                 }
+                catch (e) {
+                    console.log('没有选择目录: ', e);
+                    return;
+                }
+                if (!目录) {
+                    return;
+                }
+
+                项目目录 = 目录;
+
+                var 地图文件 = [];
+                for await (const 文件 of 目录.values()) {
+                    if (文件.name.endsWith('.yrm') || 文件.name.endsWith('.mpr')) {
+                        地图文件.push(文件);
+                    }
+                }
+
+                if (地图文件.length === 0) {
+                    console.log('没有找到地图文件');
+                    return;
+                }
+
+                switch (地图文件.length) {
+                    case 0:
+                        return;
+                    case 1:
+                        this.指定地图文件(地图文件[0]);
+                        break;
+                    default:
+                        // 多个地图文件让用户自己选择
+                        this.地图文件列表 = 地图文件;
+                        this.选择地图文件对话框 = true;
+                }
+
+
+                return;
+
+
+                // try {
+                //     var [文件] = await window.showOpenFilePicker()
+                // } catch (e) {
+                //     console.log('没有选择地图: ', e);
+                // }
+
+            },
+            指定地图文件: async function (文件) {
                 if (!文件) {
                     return;
                 }
@@ -947,6 +1006,7 @@
                 地图文件 = 文件;
                 地图数据 = ini.parse(文件内容);
                 地图内容 = 文件内容;
+                this.选择地图文件对话框 = false;
             },
             追加配置: async function () {
                 try {
