@@ -34,7 +34,7 @@
             })
             return;
         }
-        
+
         if (JSON.stringify(修改过的注册名) === '{}') {
             ElementPlus.ElNotification({
                 title: '提示',
@@ -45,7 +45,7 @@
             return;
         }
         await 创建历史记录();
-        
+
         for (var i in 修改过的注册名) {
             if (!地图数据[i]) {
                 // 删除的单位
@@ -919,8 +919,8 @@
                 if (typeof 单位.UIName2 === 'string' && 单位.UIName2 !== "") {
                     return 单位.UIName2;
                 }
-                if (typeof 单位.UIName === 'string' && 单位.UIName !== "") {
-                    return 单位.UIName;
+                if (typeof 单位.UIName === 'string' && 单位.UIName !== "" && this.csf[单位.UIName.toLowerCase()]) {
+                    return this.csf[单位.UIName.toLowerCase()];
                 }
                 if (typeof 单位.Name === 'string' && 单位.Name !== "") {
                     return 单位.Name;
@@ -1017,6 +1017,12 @@
                 地图数据 = ini.parse(文件内容);
                 地图内容 = 文件内容;
                 this.选择地图文件对话框 = false;
+
+                var 中文翻译文件 = await 项目目录.getFileHandle('ra2md.ini');
+                if (中文翻译文件) {
+                    this.追加中文翻译(中文翻译文件);
+                }
+
             },
             追加配置: async function () {
                 try {
@@ -1050,17 +1056,22 @@
                 合并后的数据.合并地图({});
                 this.刷新所有类型();
             },
-            追加中文翻译: async function () {
-                try {
-                    var [文件] = await window.showOpenFilePicker()
+            追加中文翻译: async function (翻译文件) {
+                var 文件 = null;
+                if (翻译文件) {
+                    文件 = 翻译文件;
+                } else {
+                    try {
+                        var [文件] = await window.showOpenFilePicker()
+                        if (!文件) {
+                            return;
+                        }
+                    } catch (e) {
+                        console.log('没有选择文件: ', e);
+                    }
                     if (!文件) {
                         return;
                     }
-                } catch (e) {
-                    console.log('没有选择文件: ', e);
-                }
-                if (!文件) {
-                    return;
                 }
                 var 文件内容 = await 文件.getFile();
                 文件内容 = await new Promise((resolve, reject) => {
@@ -1075,11 +1086,7 @@
                 });
 
                 var 翻译 = ini.parse(文件内容).csf || ini.parse(文件内容).CSF;
-                var 转换后的翻译 = {};
-                for (var i in 翻译) {
-                    转换后的翻译[i.toLowerCase()] = 翻译[i];
-                }
-                合并后的数据.合并中文翻译(转换后的翻译);
+                合并后的数据.合并中文翻译(翻译);
                 this.刷新所有类型();
             },
             基础属性设置: function () {

@@ -39,9 +39,7 @@
             },
             合并中文翻译: function (翻译) {
                 for (var i in 翻译) {
-                    if (this.csf[i]) {
-                        this.csf[i] = 翻译[i];
-                    }
+                    this.csf[i.toLowerCase()] = 翻译[i];
                 }
                 this.解析所有名字();
             },
