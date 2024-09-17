@@ -1247,8 +1247,6 @@
                             地图数据 = JSON.stringify(地图数据);
                             原始数据 = JSON.stringify(原始数据);
                             if (地图数据 !== 原始数据) {
-                                console.log('修改过的建筑:', 所有建筑[i]);
-                                console.log("原始数据: ", 原始地图数据.rules[i]);
                                 this.建筑列表[i] = JSON.parse(JSON.stringify(合并后的数据.rules[i]));
                                 this.建筑列表[i].状态 = '已修改';
                             }
