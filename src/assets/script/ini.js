@@ -14,7 +14,7 @@
                 }
                 line = line.split(';')[0].trim();
                 if (line[0] === '[') {
-                    section = line.substring(1, line.length - 1);
+                    section = line.replace('[', '').replace(/\].*/, '');
                     result[section] = {};
                 } else {
                     var pair = line.split('=');
