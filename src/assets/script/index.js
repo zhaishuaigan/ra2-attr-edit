@@ -1011,7 +1011,7 @@
                 await 合并后的数据.初始化();
                 合并后的数据.合并地图(选择的地图);
                 this.选择的地图 = 选择的地图;
-                this.刷新所有类型();
+                
 
                 地图文件 = 文件;
                 地图数据 = ini.parse(文件内容);
@@ -1022,6 +1022,8 @@
                 if (中文翻译文件) {
                     this.追加中文翻译(中文翻译文件);
                 }
+
+                this.刷新所有类型();
 
             },
             追加配置: async function () {
@@ -1086,7 +1088,10 @@
                 });
 
                 var 翻译 = ini.parse(文件内容).csf || ini.parse(文件内容).CSF;
-                合并后的数据.合并中文翻译(翻译);
+                原始地图数据.csf = 翻译;
+                原始地图数据.解析所有名字();
+                合并后的数据.csf = 翻译;
+                合并后的数据.解析所有名字();
                 this.刷新所有类型();
             },
             基础属性设置: function () {
@@ -1240,12 +1245,8 @@
                                 continue;
                             }
 
-                            var 地图数据 = JSON.parse(JSON.stringify(所有建筑[i]));
-                            var 原始数据 = JSON.parse(JSON.stringify(原始地图数据.rules[i]));
-                            delete 地图数据.UIName2;
-                            delete 原始数据.UIName2;
-                            地图数据 = JSON.stringify(地图数据);
-                            原始数据 = JSON.stringify(原始数据);
+                            var 地图数据 = JSON.stringify(所有建筑[i]);
+                            var 原始数据 = JSON.stringify(原始地图数据.rules[i]);
                             if (地图数据 !== 原始数据) {
                                 this.建筑列表[i] = JSON.parse(JSON.stringify(合并后的数据.rules[i]));
                                 this.建筑列表[i].状态 = '已修改';
