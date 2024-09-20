@@ -1011,18 +1011,21 @@
                 await 合并后的数据.初始化();
                 合并后的数据.合并地图(选择的地图);
                 this.选择的地图 = 选择的地图;
-                
+
 
                 地图文件 = 文件;
                 地图数据 = ini.parse(文件内容);
                 地图内容 = 文件内容;
                 this.选择地图文件对话框 = false;
 
-                var 中文翻译文件 = await 项目目录.getFileHandle('ra2md.ini');
-                if (中文翻译文件) {
-                    this.追加中文翻译(中文翻译文件);
-                }
+                try {
+                    var 中文翻译文件 = await 项目目录.getFileHandle('ra2md.ini');
+                    if (中文翻译文件) {
+                        this.追加中文翻译(中文翻译文件);
+                    }
+                } catch (e) {
 
+                }
                 this.刷新所有类型();
 
             },
