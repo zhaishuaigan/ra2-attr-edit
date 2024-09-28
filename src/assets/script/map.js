@@ -153,7 +153,7 @@
             },
 
             获取所有战车或飞机: function () {
-                var list = Object.values(this.rules['VehicleTypes']);
+                var list = [...Object.values(this.rules['VehicleTypes']), ...Object.values(this.rules['AircraftTypes'])];
                 var result = {};
                 for (var i in list) {
                     result[list[i]] = this.rules[list[i]];
