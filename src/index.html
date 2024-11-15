@@ -27,7 +27,7 @@
         </div>
     </div>
     <div id="app" style="display: none;">
-        <div style=" display: flex; justify-content: center; align-items: center; padding: 20px;">
+        <div class="功能按钮区域">
             <el-tooltip class="box-item" effect="dark" content="选择一个包含地图文件的目录, 可以自动识别地图文件, 每次保存也会有备份."
                 placement="bottom">
                 <el-button type="success" @click="选择地图()">选择地图查看</el-button>
@@ -61,6 +61,10 @@
                 content="这个按钮可以用来生成盲盒, 原理是根据单位上的自定义属性[manghe]来生成指定数量的盲盒, 生成的盲盒会自动排好注册表, 只需要保存文件, 然后用include引入即可."
                 placement="bottom">
                 <el-button type="success" @click="打开盲盒生成器()">盲盒配置与生成</el-button>
+            </el-tooltip>
+            <el-tooltip class="box-item" effect="dark" content="原理是根据单位的死亡动画随机播放的特性, 动画生成单位的功能实现随机抽卡."
+                placement="bottom">
+                <el-button type="success" @click="打开抽卡生成器()">抽卡配置</el-button>
             </el-tooltip>
             <el-tooltip class="box-item" effect="dark" content="检测版本更新, 如果有新版本, 会自动下载!" placement="bottom">
                 <el-button type="success" @click="更新检测()">检测编辑器是否有更新</el-button>
@@ -108,25 +112,46 @@
                 <el-tab-pane label="单位属性" name="属性">
                     <el-descriptions title="单位属性" :column="1" border>
                         <el-descriptions-item label="操作">
-                            <el-button v-if="查看历史.length > 1" type="success" @click="返回查看历史()">返回</el-button>
-                            <!-- <el-button v-if="查看历史.length > 0 && 查看历史[0] != 选中的注册名" type="success" @click="前进查看历史()">前进</el-button> -->
-                            <el-button type="success" @click="添加属性(选中的注册名)">添加属性</el-button>
-                            <el-button type="success" v-if="建筑列表[选中的注册名]"
-                                @click="打开复制单位对话框(选中的注册名, '建筑')">复制单位</el-button>
-                            <el-button type="success" v-if="士兵列表[选中的注册名]"
-                                @click="打开复制单位对话框(选中的注册名, '士兵')">复制单位</el-button>
-                            <el-button type="success" v-if="战车或飞机列表[选中的注册名]"
-                                @click="打开复制单位对话框(选中的注册名, '战车或飞机')">复制单位</el-button>
-                            <el-button type="success" v-if="建筑列表[选中的注册名]" @click="打开建筑盲盒生成器(选中的注册名)">生成盲盒</el-button>
-                            <el-button type="success" v-if="战车或飞机列表[选中的注册名]" @click="打开战车盲盒生成器(选中的注册名)">生成盲盒</el-button>
-                            <template v-if="!士兵列表[选中的注册名]">
-                                <el-button type="success" v-if="!选中的单位['manghe']"
-                                    @click="加入盲盒生成器(选中的注册名)">加入盲盒生成器</el-button>
-                                <el-button type="danger" v-if="选中的单位['manghe']"
-                                    @click="从盲盒生成器中删除(选中的注册名)">从盲盒生成器中删除</el-button>
-                            </template>
-                            <el-button type="danger" @click="删除单位(选中的注册名)">删除单位</el-button>
+                            <div class="单位操作">
+                                <el-button v-if="查看历史.length > 1" type="success" @click="返回查看历史()">返回</el-button>
+                                <!-- <el-button v-if="查看历史.length > 0 && 查看历史[0] != 选中的注册名" type="success" @click="前进查看历史()">前进</el-button> -->
+                                <el-button type="success" @click="添加属性(选中的注册名)">添加属性</el-button>
 
+                                <span style=" padding-left: 10px"></span>
+                                <el-dropdown trigger="click">
+                                    <el-button type="primary">
+                                        更多...
+                                    </el-button>
+                                    <template #dropdown>
+                                        <el-dropdown-menu>
+                                            <template v-if="!士兵列表[选中的注册名]">
+                                                <el-dropdown-item v-if="建筑列表[选中的注册名]"
+                                                    @click="打开复制单位对话框(选中的注册名,'建筑')">复制单位</el-dropdown-item>
+                                                <el-dropdown-item v-if="士兵列表[选中的注册名]"
+                                                    @click="打开复制单位对话框(选中的注册名, '士兵')">复制单位</el-dropdown-item>
+                                                <el-dropdown-item v-if="战车或飞机列表[选中的注册名]"
+                                                    @click="打开复制单位对话框(选中的注册名, '战车或飞机')">复制单位</el-dropdown-item>
+                                                <el-dropdown-item v-if="建筑列表[选中的注册名]"
+                                                    @click="打开建筑盲盒生成器(选中的注册名)">生成盲盒</el-dropdown-item>
+                                                <el-dropdown-item v-if="战车或飞机列表[选中的注册名]"
+                                                    @click="打开战车盲盒生成器(选中的注册名)">生成盲盒</el-dropdown-item>
+                                                <el-dropdown-item type="success" v-if="!选中的单位['manghe']"
+                                                    @click="加入盲盒生成器(选中的注册名)">加入盲盒生成器</el-dropdown-item>
+                                                <el-dropdown-item type="danger" v-if="选中的单位['manghe']"
+                                                    @click="从盲盒生成器中删除(选中的注册名)">从盲盒生成器中删除</el-dropdown-item>
+                                                <el-dropdown-item type="success" v-if="!选中的单位['chouka']"
+                                                    @click="加入抽卡生成器(选中的注册名)">加入抽卡生成器</el-dropdown-item>
+                                                <el-dropdown-item type="danger" v-if="选中的单位['chouka']"
+                                                    @click="从抽卡生成器中删除(选中的注册名)">从抽卡生成器中删除</el-dropdown-item>
+                                                <el-dropdown-item type="danger"
+                                                    @click="删除单位(选中的注册名)">删除单位</el-dropdown-item>
+                                            </template>
+                                        </el-dropdown-menu>
+                                    </template>
+
+                                </el-dropdown>
+
+                            </div>
                         </el-descriptions-item>
                         <el-descriptions-item label="注册名">[{{选中的注册名}}]</el-descriptions-item>
                         <template v-for="(属性值, 属性名) in 要展示的数据">
@@ -714,6 +739,39 @@
             <template #footer>
                 <div class="dialog-footer">
                     <el-button @click="选择地图文件对话框 = false">取消</el-button>
+                </div>
+            </template>
+        </el-dialog>
+
+
+
+        <el-dialog v-model="抽卡配置对话框" title="抽卡配置对话框" width="600">
+            <el-form :model="抽卡配置">
+                <el-form-item label="开始编号">
+                    <el-input v-model="抽卡配置.开始编号" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="单位配置">
+                    <el-input v-model="抽卡配置.已有配置" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+                <el-form-item label="模板设置">
+                    <el-input v-model="抽卡配置.模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea" placeholder="" />
+                </el-form-item>
+                <el-form-item label="动画拼接">
+                    <el-input v-model="抽卡配置.动画拼接" autocomplete="off" />
+                </el-form-item>
+                <el-form-item label="生成结果">
+                    <el-input v-model="抽卡配置.生成结果" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
+
+            </el-form>
+            <template #footer>
+                <div class="dialog-footer">
+                    <el-button @click="抽卡配置对话框 = false">取消</el-button>
+                    <el-button type="primary" @click="生成抽卡数据()">
+                        生成
+                    </el-button>
                 </div>
             </template>
         </el-dialog>

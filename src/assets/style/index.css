@@ -29,3 +29,22 @@
 .attr-item:hover .btn-edit {
     visibility: visible;
 }
+
+.功能按钮区域 {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.功能按钮区域 button{
+    margin-bottom: 10px;
+}
+
+.单位操作 {
+}
+
+.单位操作 button{
+    margin-bottom: 10px;
+}

@@ -176,6 +176,14 @@
                 要添加的注册名: '',
                 选择地图文件对话框: false,
                 地图文件列表: [],
+                抽卡配置对话框: false,
+                抽卡配置: {
+                    模板: '',
+                    默认模板: '[ART_{注册名}]\nImage=WARPOUT\nCreateUnit={注册名}\nCreateUnit.ConsiderPathfinding=yes\n',
+                    开始编号: 1301,
+                    生成结果: '',
+                    动画拼接: ''
+                }
             }
         },
         computed: {
@@ -772,6 +780,88 @@
                 }
 
                 this.盲盒生成器的数据.模板 = JSON.parse(地图数据['manghe']['tpl']);
+            },
+
+            打开抽卡生成器() {
+
+                if (typeof 合并后的数据.rules['chouka'] !== 'undefined') {
+                    if (合并后的数据.rules['chouka']['tpl']) {
+                        this.抽卡配置.模板 = JSON.parse(合并后的数据.rules['chouka']['tpl']);
+                    } else {
+                        this.抽卡配置.模板 = this.抽卡配置.默认模板;
+                    }
+                    if (合并后的数据.rules['chouka']['start']) {
+                        this.抽卡配置.开始编号 = 合并后的数据.rules['chouka']['start'];
+                    }
+                } else {
+                    this.抽卡配置.模板 = this.抽卡配置.默认模板;
+                }
+                this.计算抽卡配置的数据();
+                this.抽卡配置对话框 = true;
+            },
+            计算抽卡配置的数据: async function () {
+                this.抽卡配置.已有配置 = '';
+                var 所有要生成抽卡的战车 = {};
+                var 所有战车 = Object.values(合并后的数据.rules["VehicleTypes"]);
+                for (var i = 0; i < 所有战车.length; i++) {
+                    var 注册名 = 所有战车[i];
+                    if (typeof 合并后的数据.rules[注册名] == 'undefined') {
+                        continue;
+                    }
+                    if (typeof 合并后的数据.rules[注册名]['chouka'] != 'undefined') {
+                        所有要生成抽卡的战车[注册名] = 合并后的数据.rules[注册名];
+                        this.抽卡配置.已有配置 += 注册名 + '=' + 合并后的数据.rules[注册名]['UIName2'] + '\n';
+                    }
+                }
+                this.抽卡配置.生成结果 = '';
+                this.抽卡配置.战车 = 所有要生成抽卡的战车;
+            },
+
+            生成抽卡数据: async function () {
+                var 开始编号 = parseInt(this.抽卡配置.开始编号);
+                var 模板 = this.抽卡配置.模板;
+                var 生成结果 = "";
+                var 注册表 = { Animations: {} };
+                var 动画拼接 = [];
+                for (var i in this.抽卡配置.战车) {
+                    注册表['Animations'][开始编号] = 'ART_' + i;
+                    动画拼接.push('ART_' + i);
+                    生成结果 += "\n" + 模板.replace(/\{注册名\}/g, i);
+                    开始编号++;
+                }
+                this.抽卡配置.生成结果 = ini.stringify(注册表) + '\n\n' + 生成结果;
+                this.抽卡配置.动画拼接 = 'DestroyAnim=' + 动画拼接.join(',');
+                this.保存属性({
+                    注册名: 'chouka',
+                    属性名: 'tpl',
+                    属性值: JSON.stringify(this.抽卡配置.模板),
+                });
+                this.保存属性({
+                    注册名: 'chouka',
+                    属性名: 'start',
+                    属性值: this.抽卡配置.开始编号,
+                });
+                ElementPlus.ElNotification({
+                    title: '提示',
+                    message: '生成抽卡数据成功',
+                    type: 'success',
+                });
+            },
+            加入抽卡生成器: async function (注册名) {
+                await this.保存添加的属性({
+                    注册名: 注册名,
+                    属性名: 'chouka',
+                    属性值: '1',
+                });
+                ElementPlus.ElNotification({
+                    title: '提示',
+                    message: '加入成功',
+                    type: 'success',
+                    duration: 3000,
+                })
+            },
+            从抽卡生成器中删除: async function (注册名) {
+                await this.直接删除属性不提示(注册名, 'chouka');
             },
 
             将文本保存成本地文件: function (文本, 文件名) {
