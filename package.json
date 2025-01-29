@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "npx serve -p 2000 ./src/",
+    "dev3000": "npx serve -p 3000 ./src/",
     "build": "node ./build/build.js"
   },
   "author": "",

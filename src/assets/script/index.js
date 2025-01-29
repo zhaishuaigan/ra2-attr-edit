@@ -132,7 +132,7 @@
                     模板: '',
                     默认模板: '[{注册名}{编号}]\nUIName={显示名}\nName={注册名}\nDeploysInto={注册名}\nGroupAs={注册名}\nCost=1000\nSize=6\nArmor=light\nImage=TRUCKB\nOwner=British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs,YuriCountry\nSight=5\nSpeed=4\nCrewed=no\nPoints=40\nTurret=no\nWeight=2\nCrusher=no\nPrimary=none\nSoylent=100\nCategory=AFV\nDieSound=GenVehicleDie\nStrength=200\nExplosion=TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60\nLocomotor={4A582741-9839-11d1-B709-00A024DDAFD1}\nMaxDebris=2\nSecondary=none\nTechLevel=-1\nTrainable=no\nVoiceMove=\nCrushSound=TankCrush\nCrateGoodie=yes\nDebrisTypes=TIRE\nSelfHealing=no\nThreatPosed=50\nVoiceAttack=GenAllVehicleAttackCommand\nVoiceSelect=GenAllVehicleSelect\nCarriesCrate=yes\nMovementZone=Normal\nInsignificant=no\nVoiceFeedback=\nDebrisMaximums=4\nDamageParticleSystems=SparkSys,SmallGreySSys\nAllowedToStartInMultiplayer=no',
                     开始编号: 200,
-                    已有配置: '',
+                    单位数量配置: '',
                     建筑: {},
                     战车: {},
                     生成结果: '',
@@ -178,10 +178,13 @@
                 地图文件列表: [],
                 抽卡配置对话框: false,
                 抽卡配置: {
-                    模板: '',
-                    默认模板: '[ART_{注册名}]\nImage=WARPOUT\nCreateUnit={注册名}\nCreateUnit.ConsiderPathfinding=yes\n',
+                    盲盒模板: '',
+                    盲盒默认模板: '[{新注册名}]\nUIName={显示名}\nName={注册名}\nDeploysInto={注册名}\nGroupAs={注册名}\nCost=1000\nSize=6\nArmor=light\nImage=TRUCKB\nOwner=British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs,YuriCountry\nSight=5\nSpeed=4\nCrewed=no\nPoints=40\nTurret=no\nWeight=2\nCrusher=no\nPrimary=none\nSoylent=100\nCategory=AFV\nDieSound=GenVehicleDie\nStrength=200\nExplosion=TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60\nLocomotor={4A582741-9839-11d1-B709-00A024DDAFD1}\nMaxDebris=2\nSecondary=none\nTechLevel=-1\nTrainable=no\nVoiceMove=\nCrushSound=TankCrush\nCrateGoodie=yes\nDebrisTypes=TIRE\nSelfHealing=no\nThreatPosed=50\nVoiceAttack=GenAllVehicleAttackCommand\nVoiceSelect=GenAllVehicleSelect\nCarriesCrate=yes\nMovementZone=Normal\nInsignificant=no\nVoiceFeedback=\nDebrisMaximums=4\nDamageParticleSystems=SparkSys,SmallGreySSys\nAllowedToStartInMultiplayer=no',
+                    动画模板: '',
+                    动画默认模板: '[ART_{注册名}]\nImage=WARPOUT\nCreateUnit={注册名}\nCreateUnit.ConsiderPathfinding=yes\n',
                     开始编号: 1301,
-                    生成结果: '',
+                    单位生成结果: '',
+                    动画生成结果: '',
                     动画拼接: ''
                 }
             }
@@ -617,7 +620,7 @@
             计算盲盒生成器的数据: function () {
                 var 所有要生成盲盒的建筑 = {};
                 var 所有要生成盲盒的战车 = {};
-                this.盲盒生成器的数据.已有配置 = '';
+                this.盲盒生成器的数据.单位数量配置 = '';
                 var 所有建筑 = Object.values(合并后的数据.rules["BuildingTypes"]);
                 for (var i = 0; i < 所有建筑.length; i++) {
                     var 注册名 = 所有建筑[i];
@@ -627,7 +630,7 @@
 
                     if (typeof 合并后的数据.rules[注册名]['manghe'] != 'undefined') {
                         所有要生成盲盒的建筑[注册名] = 合并后的数据.rules[注册名];
-                        this.盲盒生成器的数据.已有配置 += 注册名 + '=' + 合并后的数据.rules[注册名]['manghe'] + ';' + 合并后的数据.rules[注册名]['UIName2'] + '\n';
+                        this.盲盒生成器的数据.单位数量配置 += 注册名 + '=' + 合并后的数据.rules[注册名]['manghe'] + ';' + 合并后的数据.rules[注册名]['UIName2'] + '\n';
                     }
                 }
 
@@ -639,7 +642,7 @@
                     }
                     if (typeof 合并后的数据.rules[注册名]['manghe'] != 'undefined') {
                         所有要生成盲盒的战车[注册名] = 合并后的数据.rules[注册名];
-                        this.盲盒生成器的数据.已有配置 += 注册名 + '=' + 合并后的数据.rules[注册名]['manghe'] + ';' + 合并后的数据.rules[注册名]['UIName2'] + '\n';
+                        this.盲盒生成器的数据.单位数量配置 += 注册名 + '=' + 合并后的数据.rules[注册名]['manghe'] + ';' + 合并后的数据.rules[注册名]['UIName2'] + '\n';
                     }
                 }
                 this.盲盒生成器的数据.生成结果 = '';
@@ -649,7 +652,7 @@
             生成盲盒数据: async function () {
                 var 开始编号 = parseInt(this.盲盒生成器的数据.开始编号);
                 var 模板 = this.盲盒生成器的数据.模板;
-                var 修改后的数据 = ini.parse('[盲盒]\n' + this.盲盒生成器的数据.已有配置);
+                var 修改后的数据 = ini.parse('[盲盒]\n' + this.盲盒生成器的数据.单位数量配置);
                 for (var 注册名 in 修改后的数据['盲盒']) {
                     if (修改后的数据['盲盒'][注册名] != 合并后的数据.rules[注册名]['manghe']) {
                         await this.保存属性({
@@ -783,58 +786,102 @@
             },
 
             打开抽卡生成器() {
-
                 if (typeof 合并后的数据.rules['chouka'] !== 'undefined') {
-                    if (合并后的数据.rules['chouka']['tpl']) {
-                        this.抽卡配置.模板 = JSON.parse(合并后的数据.rules['chouka']['tpl']);
+                    if (合并后的数据.rules['chouka']['art_tpl']) {
+                        this.抽卡配置.动画模板 = JSON.parse(合并后的数据.rules['chouka']['art_tpl']);
+                        this.抽卡配置.盲盒模板 = JSON.parse(合并后的数据.rules['chouka']['manghe_tpl']);
                     } else {
-                        this.抽卡配置.模板 = this.抽卡配置.默认模板;
+                        this.抽卡配置.动画模板 = this.抽卡配置.动画默认模板;
+                        this.抽卡配置.盲盒模板 = this.抽卡配置.盲盒默认模板;
                     }
                     if (合并后的数据.rules['chouka']['start']) {
                         this.抽卡配置.开始编号 = 合并后的数据.rules['chouka']['start'];
                     }
                 } else {
-                    this.抽卡配置.模板 = this.抽卡配置.默认模板;
+                    this.抽卡配置.动画模板 = this.抽卡配置.动画默认模板;
+                    this.抽卡配置.盲盒模板 = this.抽卡配置.盲盒默认模板;
                 }
                 this.计算抽卡配置的数据();
                 this.抽卡配置对话框 = true;
             },
             计算抽卡配置的数据: async function () {
-                this.抽卡配置.已有配置 = '';
-                var 所有要生成抽卡的战车 = {};
-                var 所有战车 = Object.values(合并后的数据.rules["VehicleTypes"]);
-                for (var i = 0; i < 所有战车.length; i++) {
-                    var 注册名 = 所有战车[i];
+                this.抽卡配置.单位数量配置 = '';
+                var 抽卡单位列表 = {};
+                var 所有单位列表 = [
+                    ...Object.keys(this.建筑列表),
+                    ...Object.keys(this.士兵列表),
+                    ...Object.keys(this.战车或飞机列表),
+                ];
+                for (var i = 0; i < 所有单位列表.length; i++) {
+                    var 注册名 = 所有单位列表[i];
                     if (typeof 合并后的数据.rules[注册名] == 'undefined') {
                         continue;
                     }
                     if (typeof 合并后的数据.rules[注册名]['chouka'] != 'undefined') {
-                        所有要生成抽卡的战车[注册名] = 合并后的数据.rules[注册名];
-                        this.抽卡配置.已有配置 += 注册名 + '=' + 合并后的数据.rules[注册名]['UIName2'] + '\n';
+                        抽卡单位列表[注册名] = 合并后的数据.rules[注册名];
+                        this.抽卡配置.单位数量配置 += 注册名 + '=' + 合并后的数据.rules[注册名]['chouka'] + ';' + 合并后的数据.rules[注册名]['UIName2'] + '\n';
                     }
                 }
-                this.抽卡配置.生成结果 = '';
-                this.抽卡配置.战车 = 所有要生成抽卡的战车;
+                this.抽卡配置.单位生成结果 = '';
+                this.抽卡配置.动画生成结果 = '';
+                this.抽卡配置.单位列表 = 抽卡单位列表;
             },
 
             生成抽卡数据: async function () {
                 var 开始编号 = parseInt(this.抽卡配置.开始编号);
-                var 模板 = this.抽卡配置.模板;
-                var 生成结果 = "";
-                var 注册表 = { Animations: {} };
+                var 动画模板 = this.抽卡配置.动画模板;
+                var 盲盒模板 = this.抽卡配置.盲盒模板;
+                var 单位生成结果 = "";
+                var 动画生成结果 = "";
+                var 注册表 = { Animations: {}, VehicleTypes: {} };
                 var 动画拼接 = [];
-                for (var i in this.抽卡配置.战车) {
-                    注册表['Animations'][开始编号] = 'ART_' + i;
-                    动画拼接.push('ART_' + i);
-                    生成结果 += "\n" + 模板.replace(/\{注册名\}/g, i);
+                var 单位数量配置 = ini.parse("[数量配置]\n" + this.抽卡配置.单位数量配置).数量配置;
+                var 所有建筑显示名 = this.获取所有建筑的显示名();
+                for (var i in 单位数量配置) {
+                    var 注册名 = i;
+                    
+                    if (this.建筑列表[注册名]) {
+                        // 生成建筑盲盒
+                        var 新注册名 = 注册名 + '_MANGHE';
+                        注册表['Animations'][开始编号] = 'ART_' + 新注册名;
+                        注册表['VehicleTypes'][开始编号] = 新注册名;
+                        单位生成结果 += 盲盒模板.replace(/\{新注册名\}/g, 新注册名)
+                            .replace(/\{注册名\}/g, 注册名)
+                            .replace(/\{显示名\}/g, 所有建筑显示名[注册名]) + '\n\n';
+                        for (var j = 0; j < parseInt(单位数量配置[注册名]); j++) {
+                            动画拼接.push('ART_' + 新注册名);
+                        }
+                        动画生成结果 += 动画模板.replace(/\{注册名\}/g, 新注册名) + "\n";
+                    } else {
+                        注册表['Animations'][开始编号] = 'ART_' + 注册名;
+                        for (var j = 0; j < parseInt(单位数量配置[注册名]); j++) {
+                            动画拼接.push('ART_' + 注册名);
+                        }
+                        动画生成结果 += 动画模板.replace(/\{注册名\}/g, 注册名) + "\n";
+                    }
+
+                    if (单位数量配置[注册名] != 合并后的数据.rules[注册名]['chouka']) {
+                        this.保存属性({
+                            注册名: 注册名,
+                            属性名: 'chouka',
+                            属性值: 单位数量配置[注册名],
+                        });
+                    }
                     开始编号++;
                 }
-                this.抽卡配置.生成结果 = ini.stringify(注册表) + '\n\n' + 生成结果;
+                单位生成结果 = ini.stringify(注册表) + '\n\n' + 单位生成结果;
+                this.抽卡配置.单位生成结果 = 单位生成结果;
+                this.抽卡配置.动画生成结果 = 动画生成结果;
                 this.抽卡配置.动画拼接 = 'DestroyAnim=' + 动画拼接.join(',');
                 this.保存属性({
                     注册名: 'chouka',
-                    属性名: 'tpl',
-                    属性值: JSON.stringify(this.抽卡配置.模板),
+                    属性名: 'art_tpl',
+                    属性值: JSON.stringify(this.抽卡配置.动画模板),
+                });
+                this.保存属性({
+                    注册名: 'chouka',
+                    属性名: 'manghe_tpl',
+                    属性值: JSON.stringify(this.抽卡配置.盲盒模板),
                 });
                 this.保存属性({
                     注册名: 'chouka',

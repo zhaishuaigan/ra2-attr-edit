@@ -124,17 +124,9 @@
                                     </el-button>
                                     <template #dropdown>
                                         <el-dropdown-menu>
-                                            <template v-if="!士兵列表[选中的注册名]">
+                                            <template v-if="建筑列表[选中的注册名]">
                                                 <el-dropdown-item v-if="建筑列表[选中的注册名]"
                                                     @click="打开复制单位对话框(选中的注册名,'建筑')">复制单位</el-dropdown-item>
-                                                <el-dropdown-item v-if="士兵列表[选中的注册名]"
-                                                    @click="打开复制单位对话框(选中的注册名, '士兵')">复制单位</el-dropdown-item>
-                                                <el-dropdown-item v-if="战车或飞机列表[选中的注册名]"
-                                                    @click="打开复制单位对话框(选中的注册名, '战车或飞机')">复制单位</el-dropdown-item>
-                                                <el-dropdown-item v-if="建筑列表[选中的注册名]"
-                                                    @click="打开建筑盲盒生成器(选中的注册名)">生成盲盒</el-dropdown-item>
-                                                <el-dropdown-item v-if="战车或飞机列表[选中的注册名]"
-                                                    @click="打开战车盲盒生成器(选中的注册名)">生成盲盒</el-dropdown-item>
                                                 <el-dropdown-item type="success" v-if="!选中的单位['manghe']"
                                                     @click="加入盲盒生成器(选中的注册名)">加入盲盒生成器</el-dropdown-item>
                                                 <el-dropdown-item type="danger" v-if="选中的单位['manghe']"
@@ -143,12 +135,31 @@
                                                     @click="加入抽卡生成器(选中的注册名)">加入抽卡生成器</el-dropdown-item>
                                                 <el-dropdown-item type="danger" v-if="选中的单位['chouka']"
                                                     @click="从抽卡生成器中删除(选中的注册名)">从抽卡生成器中删除</el-dropdown-item>
-                                                <el-dropdown-item type="danger"
-                                                    @click="删除单位(选中的注册名)">删除单位</el-dropdown-item>
                                             </template>
+                                            <template v-if="士兵列表[选中的注册名]">
+                                                <el-dropdown-item v-if="士兵列表[选中的注册名]"
+                                                    @click="打开复制单位对话框(选中的注册名, '士兵')">复制单位</el-dropdown-item>
+                                                <el-dropdown-item type="success" v-if="!选中的单位['chouka']"
+                                                    @click="加入抽卡生成器(选中的注册名)">加入抽卡生成器</el-dropdown-item>
+                                                <el-dropdown-item type="danger" v-if="选中的单位['chouka']"
+                                                    @click="从抽卡生成器中删除(选中的注册名)">从抽卡生成器中删除</el-dropdown-item>
+                                            </template>
+                                            <template v-if="战车或飞机列表[选中的注册名]">
+                                                <el-dropdown-item v-if="战车或飞机列表[选中的注册名]"
+                                                    @click="打开复制单位对话框(选中的注册名, '战车或飞机')">复制单位</el-dropdown-item>
+                                                <el-dropdown-item type="success" v-if="!选中的单位['manghe']"
+                                                    @click="加入盲盒生成器(选中的注册名)">加入盲盒生成器</el-dropdown-item>
+                                                <el-dropdown-item type="danger" v-if="选中的单位['manghe']"
+                                                    @click="从盲盒生成器中删除(选中的注册名)">从盲盒生成器中删除</el-dropdown-item>
+                                                <el-dropdown-item type="success" v-if="!选中的单位['chouka']"
+                                                    @click="加入抽卡生成器(选中的注册名)">加入抽卡生成器</el-dropdown-item>
+                                                <el-dropdown-item type="danger" v-if="选中的单位['chouka']"
+                                                    @click="从抽卡生成器中删除(选中的注册名)">从抽卡生成器中删除</el-dropdown-item>
+                                            </template>
+                                            <el-dropdown-item type="danger"
+                                                @click="删除单位(选中的注册名)">删除单位</el-dropdown-item>
                                         </el-dropdown-menu>
                                     </template>
-
                                 </el-dropdown>
 
                             </div>
@@ -650,7 +661,7 @@
                     <el-input v-model="盲盒生成器的数据.开始编号" autocomplete="off" />
                 </el-form-item>
                 <el-form-item label="单位配置">
-                    <el-input v-model="盲盒生成器的数据.已有配置" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                    <el-input v-model="盲盒生成器的数据.单位数量配置" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
                         placeholder="" />
                 </el-form-item>
                 <el-form-item label="模板设置">
@@ -743,28 +754,32 @@
             </template>
         </el-dialog>
 
-
-
         <el-dialog v-model="抽卡配置对话框" title="抽卡配置对话框" width="600">
-            <el-form :model="抽卡配置">
+            <el-form :model="抽卡配置" label-width="auto">
                 <el-form-item label="开始编号">
                     <el-input v-model="抽卡配置.开始编号" autocomplete="off" />
                 </el-form-item>
                 <el-form-item label="单位配置">
-                    <el-input v-model="抽卡配置.已有配置" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                    <el-input v-model="抽卡配置.单位数量配置" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
                         placeholder="" />
                 </el-form-item>
-                <el-form-item label="模板设置">
-                    <el-input v-model="抽卡配置.模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea" placeholder="" />
+                <el-form-item label="盲盒模板">
+                    <el-input v-model="抽卡配置.盲盒模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea" placeholder="" />
+                </el-form-item>
+                <el-form-item label="动画模板">
+                    <el-input v-model="抽卡配置.动画模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea" placeholder="" />
                 </el-form-item>
                 <el-form-item label="动画拼接">
                     <el-input v-model="抽卡配置.动画拼接" autocomplete="off" />
                 </el-form-item>
-                <el-form-item label="生成结果">
-                    <el-input v-model="抽卡配置.生成结果" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                <el-form-item label="rules.ini">
+                    <el-input v-model="抽卡配置.单位生成结果" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
                         placeholder="" />
                 </el-form-item>
-
+                <el-form-item label="artmd.ini">
+                    <el-input v-model="抽卡配置.动画生成结果" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
+                </el-form-item>
             </el-form>
             <template #footer>
                 <div class="dialog-footer">
