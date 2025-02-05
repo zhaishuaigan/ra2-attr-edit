@@ -181,8 +181,8 @@
                     盲盒模板: '',
                     盲盒默认模板: '[{新注册名}]\nUIName={显示名}\nName={注册名}\nDeploysInto={注册名}\nGroupAs={注册名}\nCost=1000\nSize=6\nArmor=light\nImage=TRUCKB\nOwner=British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs,YuriCountry\nSight=5\nSpeed=4\nCrewed=no\nPoints=40\nTurret=no\nWeight=2\nCrusher=no\nPrimary=none\nSoylent=100\nCategory=AFV\nDieSound=GenVehicleDie\nStrength=200\nExplosion=TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60\nLocomotor={4A582741-9839-11d1-B709-00A024DDAFD1}\nMaxDebris=2\nSecondary=none\nTechLevel=-1\nTrainable=no\nVoiceMove=\nCrushSound=TankCrush\nCrateGoodie=yes\nDebrisTypes=TIRE\nSelfHealing=no\nThreatPosed=50\nVoiceAttack=GenAllVehicleAttackCommand\nVoiceSelect=GenAllVehicleSelect\nCarriesCrate=yes\nMovementZone=Normal\nInsignificant=no\nVoiceFeedback=\nDebrisMaximums=4\nDamageParticleSystems=SparkSys,SmallGreySSys\nAllowedToStartInMultiplayer=no',
                     动画模板: '',
-                    动画默认模板: '[ART_{注册名}]\nImage=WARPOUT\nCreateUnit={注册名}\nCreateUnit.ConsiderPathfinding=yes\n',
-                    开始编号: 1301,
+                    动画默认模板: '[{动画注册名}]\nImage=WARPOUT\nCreateUnit={单位注册名}\nCreateUnit.ConsiderPathfinding=yes\n',
+                    开始编号: 1500,
                     单位生成结果: '',
                     动画生成结果: '',
                     动画拼接: ''
@@ -786,21 +786,21 @@
             },
 
             打开抽卡生成器() {
-                if (typeof 合并后的数据.rules['chouka'] !== 'undefined') {
-                    if (合并后的数据.rules['chouka']['art_tpl']) {
-                        this.抽卡配置.动画模板 = JSON.parse(合并后的数据.rules['chouka']['art_tpl']);
-                        this.抽卡配置.盲盒模板 = JSON.parse(合并后的数据.rules['chouka']['manghe_tpl']);
-                    } else {
-                        this.抽卡配置.动画模板 = this.抽卡配置.动画默认模板;
-                        this.抽卡配置.盲盒模板 = this.抽卡配置.盲盒默认模板;
-                    }
-                    if (合并后的数据.rules['chouka']['start']) {
-                        this.抽卡配置.开始编号 = 合并后的数据.rules['chouka']['start'];
-                    }
-                } else {
-                    this.抽卡配置.动画模板 = this.抽卡配置.动画默认模板;
-                    this.抽卡配置.盲盒模板 = this.抽卡配置.盲盒默认模板;
-                }
+                // if (typeof 合并后的数据.rules['chouka'] !== 'undefined') {
+                //     if (合并后的数据.rules['chouka']['art_tpl']) {
+                //         this.抽卡配置.动画模板 = JSON.parse(合并后的数据.rules['chouka']['art_tpl']);
+                //         this.抽卡配置.盲盒模板 = JSON.parse(合并后的数据.rules['chouka']['manghe_tpl']);
+                //     } else {
+                //         this.抽卡配置.动画模板 = this.抽卡配置.动画默认模板;
+                //         this.抽卡配置.盲盒模板 = this.抽卡配置.盲盒默认模板;
+                //     }
+                //     if (合并后的数据.rules['chouka']['start']) {
+                //         this.抽卡配置.开始编号 = 合并后的数据.rules['chouka']['start'];
+                //     }
+                // } else {
+                this.抽卡配置.动画模板 = this.抽卡配置.动画默认模板;
+                this.抽卡配置.盲盒模板 = this.抽卡配置.盲盒默认模板;
+                // }
                 this.计算抽卡配置的数据();
                 this.抽卡配置对话框 = true;
             },
@@ -837,27 +837,32 @@
                 var 动画拼接 = [];
                 var 单位数量配置 = ini.parse("[数量配置]\n" + this.抽卡配置.单位数量配置).数量配置;
                 var 所有建筑显示名 = this.获取所有建筑的显示名();
+                var 序号 = 1;
+                var 新单位数量配置 = this.抽卡配置.单位数量配置;
                 for (var i in 单位数量配置) {
                     var 注册名 = i;
-                    
+                    var 动画注册名 = 'A' + 序号;
+                    注册表['Animations'][开始编号] = 动画注册名;
+
+                    for (var j = 0; j < parseInt(单位数量配置[注册名]); j++) {
+                        动画拼接.push(动画注册名);
+                    }
                     if (this.建筑列表[注册名]) {
                         // 生成建筑盲盒
-                        var 新注册名 = 注册名 + '_MANGHE';
-                        注册表['Animations'][开始编号] = 'ART_' + 新注册名;
+                        var 新注册名 = 注册名 + '_MH';
                         注册表['VehicleTypes'][开始编号] = 新注册名;
                         单位生成结果 += 盲盒模板.replace(/\{新注册名\}/g, 新注册名)
                             .replace(/\{注册名\}/g, 注册名)
                             .replace(/\{显示名\}/g, 所有建筑显示名[注册名]) + '\n\n';
-                        for (var j = 0; j < parseInt(单位数量配置[注册名]); j++) {
-                            动画拼接.push('ART_' + 新注册名);
-                        }
-                        动画生成结果 += 动画模板.replace(/\{注册名\}/g, 新注册名) + "\n";
+                        动画生成结果 += 动画模板
+                            .replace(/\{动画注册名\}/g, 动画注册名)
+                            .replace(/\{单位注册名\}/g, 新注册名)
+                            + "\n";
                     } else {
-                        注册表['Animations'][开始编号] = 'ART_' + 注册名;
-                        for (var j = 0; j < parseInt(单位数量配置[注册名]); j++) {
-                            动画拼接.push('ART_' + 注册名);
-                        }
-                        动画生成结果 += 动画模板.replace(/\{注册名\}/g, 注册名) + "\n";
+                        动画生成结果 += 动画模板
+                            .replace(/\{动画注册名\}/g, 动画注册名)
+                            .replace(/\{单位注册名\}/g, 注册名)
+                            + "\n";
                     }
 
                     if (单位数量配置[注册名] != 合并后的数据.rules[注册名]['chouka']) {
@@ -867,27 +872,38 @@
                             属性值: 单位数量配置[注册名],
                         });
                     }
+
+                    var 原配置 = 注册名 + '=' + 单位数量配置[注册名] + ';';
+                    var 新配置 = 原配置 + 动画注册名 + '-';
+                    console.log(原配置);
+                    console.log(新配置);
+
+                    新单位数量配置 = 新单位数量配置.replace(原配置, 新配置);
                     开始编号++;
+                    序号++;
                 }
+                console.log(新单位数量配置);
+                this.抽卡配置.单位数量配置 = 新单位数量配置;
                 单位生成结果 = ini.stringify(注册表) + '\n\n' + 单位生成结果;
                 this.抽卡配置.单位生成结果 = 单位生成结果;
                 this.抽卡配置.动画生成结果 = 动画生成结果;
                 this.抽卡配置.动画拼接 = 'DestroyAnim=' + 动画拼接.join(',');
-                this.保存属性({
-                    注册名: 'chouka',
-                    属性名: 'art_tpl',
-                    属性值: JSON.stringify(this.抽卡配置.动画模板),
-                });
-                this.保存属性({
-                    注册名: 'chouka',
-                    属性名: 'manghe_tpl',
-                    属性值: JSON.stringify(this.抽卡配置.盲盒模板),
-                });
-                this.保存属性({
-                    注册名: 'chouka',
-                    属性名: 'start',
-                    属性值: this.抽卡配置.开始编号,
-                });
+
+                // this.保存属性({
+                //     注册名: 'chouka',
+                //     属性名: 'art_tpl',
+                //     属性值: JSON.stringify(this.抽卡配置.动画模板),
+                // });
+                // this.保存属性({
+                //     注册名: 'chouka',
+                //     属性名: 'manghe_tpl',
+                //     属性值: JSON.stringify(this.抽卡配置.盲盒模板),
+                // });
+                // this.保存属性({
+                //     注册名: 'chouka',
+                //     属性名: 'start',
+                //     属性值: this.抽卡配置.开始编号,
+                // });
                 ElementPlus.ElNotification({
                     title: '提示',
                     message: '生成抽卡数据成功',
