@@ -1106,7 +1106,11 @@
 
                 var 地图文件 = [];
                 for await (const 文件 of 目录.values()) {
-                    if (文件.name.endsWith('.yrm') || 文件.name.endsWith('.mpr')) {
+                    console.log(文件.name);
+                    var 所有地图扩展名 = ['yrm', 'mpr', 'map', 'mmx'];
+                    var 扩展名 = 文件.name.split('.').pop();
+                    console.log(扩展名);
+                    if (所有地图扩展名.includes(扩展名)) {
                         地图文件.push(文件);
                     }
                 }
