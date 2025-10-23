@@ -53,7 +53,16 @@
                 continue;
             }
             var 新单位数据 = {}
-            新单位数据[i] = 地图数据[i];
+            新单位数据[i] = JSON.parse(JSON.stringify(地图数据[i]));
+
+            for (var j in 新单位数据[i]) {
+                if (typeof 新单位数据[i][j] !== 'string') {
+                    delete 新单位数据[i][j];
+                } else if (j == 'UIName2') {
+                    delete 新单位数据[i][j];
+                }
+            }
+
             var 新单位内容 = ini.stringify(新单位数据);
 
             if (地图内容.indexOf('[' + i + ']') === -1) {
@@ -1107,7 +1116,7 @@
                 var 地图文件 = [];
                 for await (const 文件 of 目录.values()) {
                     console.log(文件.name);
-                    var 所有地图扩展名 = ['yrm', 'mpr', 'map', 'mmx'];
+                    var 所有地图扩展名 = ['yrm', 'mpr', 'map', 'mmx', 'ext'];
                     var 扩展名 = 文件.name.split('.').pop();
                     console.log(扩展名);
                     if (所有地图扩展名.includes(扩展名)) {
