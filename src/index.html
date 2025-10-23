@@ -720,7 +720,13 @@
         <el-dialog v-model="查看其他属性对话框" title="查看其他属性" width="600">
             <el-form @submit.native.prevent="显示指定单位(要查看其他属性的注册名)">
                 <el-form-item label="注册名">
-                    <el-input v-model="要查看其他属性的注册名" autocomplete="off" />
+                    <el-autocomplete v-model="要查看其他属性的注册名" :fetch-suggestions="搜索注册名" clearable
+                        class="inline-input el-form-item__content">
+                        <template #default="{ item }">
+                            <div class="value">{{ item.value }} <span class="zh">{{ item.zh }}</span></div>
+                        </template>
+                    </el-autocomplete>
+
                 </el-form-item>
             </el-form>
             <template #footer>

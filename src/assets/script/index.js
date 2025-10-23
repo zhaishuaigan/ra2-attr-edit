@@ -446,6 +446,10 @@
                 }
                 var 新单位 = JSON.parse(JSON.stringify(合并后的数据.rules[this.复制单位的数据.选中的注册名]));
 
+                if (!新单位['Image']) {
+                    新单位['Image'] = this.复制单位的数据.选中的注册名;
+                }
+
                 合并后的数据.rules[this.复制单位的数据.新注册名] = JSON.parse(JSON.stringify(新单位));
                 地图数据[this.复制单位的数据.新注册名] = JSON.parse(JSON.stringify(新单位));
                 switch (this.复制单位的数据.注册类型) {
@@ -997,6 +1001,37 @@
                 }
                 console.log(输出所有抛射体);
             },
+
+            搜索注册名: function (搜索词, 回调函数) {
+                (async () => {
+                    var 所有提示词 = [];
+                    for (var 注册名 in 合并后的数据.rules) {
+                        var zh = '';
+
+                        if (合并后的数据.rules[注册名].UIName2) {
+                            zh += 合并后的数据.rules[注册名].UIName2;
+                        } else if (合并后的数据.rules[注册名].UIName) {
+                            zh += 合并后的数据.rules[注册名].UIName;
+                        } else if (合并后的数据.rules[注册名].Name) {
+                            zh += 合并后的数据.rules[注册名].Name;
+                        }
+                        所有提示词.push({ value: 注册名, zh: zh });
+                    }
+                    if (搜索词 === '') {
+                        回调函数(所有提示词);
+                        return;
+                    }
+                    var 返回结果 = [];
+                    for (var 属性 of 所有提示词) {
+                        if (属性.value.toLowerCase().includes(搜索词.toLowerCase())) {
+                            返回结果.push(属性);
+                        } else if (属性.zh.toLowerCase().includes(搜索词.toLowerCase())) {
+                            返回结果.push(属性);
+                        }
+                    }
+                    回调函数(返回结果);
+                })();
+            },
             搜索属性名: function (搜索词, 回调函数) {
                 (async () => {
                     var 提示数据 = await 配置.加载('attr.ini');
@@ -1115,7 +1150,6 @@
 
                 var 地图文件 = [];
                 for await (const 文件 of 目录.values()) {
-                    console.log(文件.name);
                     var 所有地图扩展名 = ['yrm', 'mpr', 'map', 'mmx', 'ext'];
                     var 扩展名 = 文件.name.split('.').pop();
                     console.log(扩展名);
