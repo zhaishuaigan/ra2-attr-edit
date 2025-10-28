@@ -49,7 +49,8 @@
         for (var i in 修改过的注册名) {
             if (!地图数据[i]) {
                 // 删除的单位
-                地图内容 = 地图内容.replace(new RegExp('\\[' + i + '\\][\\s\\S]*?([\\[]|$)'), '');
+                var 正则 = new RegExp('\\[' + i + '\\][\\s\\S]*?(\\[|$)'); 
+                地图内容 = 地图内容.replace(正则, '$1');
                 continue;
             }
             var 新单位数据 = {}
@@ -374,6 +375,7 @@
                 if (地图数据['BuildingTypes']) {
                     for (var i in 地图数据['BuildingTypes']) {
                         if (地图数据['BuildingTypes'][i] == 注册名) {
+                            修改过的注册名['BuildingTypes'] = true;
                             delete 地图数据['BuildingTypes'][i];
                         }
                     }
@@ -382,6 +384,7 @@
                 if (地图数据['InfantryTypes']) {
                     for (var i in 地图数据['InfantryTypes']) {
                         if (地图数据['InfantryTypes'][i] == 注册名) {
+                            修改过的注册名['InfantryTypes'] = true;
                             delete 地图数据['InfantryTypes'][i];
                         }
                     }
@@ -390,6 +393,7 @@
                 if (地图数据['VehicleTypes']) {
                     for (var i in 地图数据['VehicleTypes']) {
                         if (地图数据['VehicleTypes'][i] == 注册名) {
+                            修改过的注册名['VehicleTypes'] = true;
                             delete 地图数据['VehicleTypes'][i];
                         }
                     }
