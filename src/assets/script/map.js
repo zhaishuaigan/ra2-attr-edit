@@ -82,6 +82,11 @@
             追加弹头到武器下面: function () {
                 for (var i in this.rules) {
                     var key = this.rules[i]['Warhead'] ? this.rules[i]['Warhead'] : '';
+                    if (key && key == 'Special') {
+                        // 特殊弹头不处理;
+                        return;
+                        this.rules[i]['Warhead2'] = {};
+                    }
                     if (key && this.rules[key]) {
                         this.rules[i]['Warhead2'] = this.rules[key];
                     }
