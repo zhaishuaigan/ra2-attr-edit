@@ -189,9 +189,9 @@
                 抽卡配置对话框: false,
                 抽卡配置: {
                     盲盒模板: '',
-                    盲盒默认模板: '[{新注册名}]\nUIName={显示名}\nName={注册名}\nDeploysInto={注册名}\nGroupAs={注册名}\nCost=1000\nSize=6\nArmor=light\nImage=TRUCKB\nOwner=British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs,YuriCountry\nSight=5\nSpeed=4\nCrewed=no\nPoints=40\nTurret=no\nWeight=2\nCrusher=no\nPrimary=none\nSoylent=100\nCategory=AFV\nDieSound=GenVehicleDie\nStrength=200\nExplosion=TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60\nLocomotor={4A582741-9839-11d1-B709-00A024DDAFD1}\nMaxDebris=2\nSecondary=none\nTechLevel=-1\nTrainable=no\nVoiceMove=\nCrushSound=TankCrush\nCrateGoodie=yes\nDebrisTypes=TIRE\nSelfHealing=no\nThreatPosed=50\nVoiceAttack=GenAllVehicleAttackCommand\nVoiceSelect=GenAllVehicleSelect\nCarriesCrate=yes\nMovementZone=Normal\nInsignificant=no\nVoiceFeedback=\nDebrisMaximums=4\nDamageParticleSystems=SparkSys,SmallGreySSys\nAllowedToStartInMultiplayer=no',
+                    盲盒默认模板: '[{新注册名}]\nUIName={显示名}\nName={注册名}\nDeploysInto={注册名}\nGroupAs={注册名}\nCost=1000\nSize=6\nArmor=light\nImage=TRUCKB\nOwner=British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs,YuriCountry\nSight=5\nSpeed=4\nCrewed=no\nPoints=40\nTurret=no\nWeight=2\nCrusher=no\nPrimary=none\nSoylent=100\nCategory=AFV\nDieSound=GenVehicleDie\nStrength=200\nExplosion=TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60\nLocomotor={4A582741-9839-11d1-B709-00A024DDAFD1}\nMaxDebris=2\nSecondary=none\nTechLevel=-1\nTrainable=no\nVoiceMove=\nCrushSound=TankCrush\nDebrisTypes=TIRE\nSelfHealing=no\nThreatPosed=50\nVoiceAttack=GenAllVehicleAttackCommand\nVoiceSelect=GenAllVehicleSelect\nCarriesCrate=yes\nMovementZone=Normal\nInsignificant=no\nVoiceFeedback=\nDebrisMaximums=4\nDamageParticleSystems=SparkSys,SmallGreySSys\nAllowedToStartInMultiplayer=no',
                     动画模板: '',
-                    动画默认模板: '[{动画注册名}]\nImage=WARPOUT\nCreateUnit={单位注册名}\nCreateUnit.ConsiderPathfinding=yes\n',
+                    动画默认模板: '[{动画注册名}]\n;Image=WARPOUT\nCreateUnit={单位注册名}\nCreateUnit.ConsiderPathfinding=yes\n',
                     开始编号: 1500,
                     单位生成结果: '',
                     动画生成结果: '',
