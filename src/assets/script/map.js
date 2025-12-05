@@ -86,8 +86,7 @@
                         // 特殊弹头不处理;
                         // return;
                         // this.rules[i]['Warhead2'] = {};
-                    }
-                    if (key && this.rules[key]) {
+                    } else if (key && this.rules[key]) {
                         this.rules[i]['Warhead2'] = this.rules[key];
                     }
                 }
