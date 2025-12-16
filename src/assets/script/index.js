@@ -49,7 +49,7 @@
         for (var i in 修改过的注册名) {
             if (!地图数据[i]) {
                 // 删除的单位
-                var 正则 = new RegExp('\\[' + i + '\\][\\s\\S]*?(\\[|$)'); 
+                var 正则 = new RegExp('\\[' + i + '\\][\\s\\S]*?(\\[|$)');
                 地图内容 = 地图内容.replace(正则, '$1');
                 continue;
             }
@@ -196,10 +196,20 @@
                     单位生成结果: '',
                     动画生成结果: '',
                     动画拼接: ''
-                }
+                },
+                抽卡设置模式: false,
+                赏金设置模式: false,
+                赏金比例: 100,
+                选择的阵营: '全部',
             }
         },
         computed: {
+            配置了赏金模式: function () {
+                return 'BountyEnablers' in 合并后的数据.rules['General'];
+            },
+            配置了显示赏金金额: function () {
+                return 'BountyDisplay' in 合并后的数据.rules['AudioVisual'];
+            },
             新建筑: function () {
                 if (!this.选择的地图 || !this.选择的地图["BuildingTypes"]) {
                     return {};
@@ -254,6 +264,133 @@
                 }
                 return 返回结果;
             },
+            过滤后的建筑列表: function () {
+                var 过滤后 = {};
+                for (var 注册名 in this.建筑列表) {
+                    var 单位 = this.建筑列表[注册名];
+                    var 建造前提 = 单位.Prerequisite?.split(',');
+                    switch (this.选择的阵营) {
+                        case '全部':
+                            break;
+                        case '盟军':
+                            if (注册名 == 'GACNST') {
+                                break;
+                            }
+                            if (建造前提?.includes('GACNST')) {
+                                break;
+                            }
+                            continue;
+                            break;
+                        case '苏军':
+                            if (注册名 == 'NACNST') {
+                                break;
+                            }
+                            if (建造前提?.includes('NACNST')) {
+                                break;
+                            }
+                            continue;
+                            break;
+                        case '尤里':
+                            if (注册名 == 'YACNST') {
+                                break;
+                            }
+                            if (建造前提?.includes('YACNST')) {
+                                break;
+                            }
+                            continue;
+                            break;
+                    }
+                    过滤后[注册名] = 单位;
+                }
+                return 过滤后;
+            },
+            过滤后的士兵列表: function () {
+                var 过滤后 = {};
+                for (var 注册名 in this.士兵列表) {
+                    var 单位 = this.士兵列表[注册名];
+                    var 建造前提 = 单位.Prerequisite?.split(',');
+                    switch (this.选择的阵营) {
+                        case '全部':
+                            break;
+                        case '盟军':
+                            if (建造前提?.includes('GAPILE')) {
+                                break;
+                            }
+                            continue;
+                            break;
+                        case '苏军':
+                            if (建造前提?.includes('NAHAND')) {
+                                break;
+                            }
+                            continue;
+                            break;
+                        case '尤里':
+                            if (建造前提?.includes('YABRCK')) {
+                                break;
+                            }
+                            continue;
+                            break;
+                    }
+                    过滤后[注册名] = 单位;
+                }
+                return 过滤后;
+            },
+            过滤后的战车或飞机列表: function () {
+                var 过滤后 = {};
+                for (var 注册名 in this.战车或飞机列表) {
+                    var 单位 = this.战车或飞机列表[注册名];
+                    var 建造前提 = 单位.Prerequisite?.split(',');
+
+                    switch (this.选择的阵营) {
+                        case '全部':
+                            break;
+                        case '盟军':
+                            if (单位.Insignificant == 'yes') {
+                                continue;
+                            }
+                            if (建造前提?.includes('GAWEAP')) {
+                                break;
+                            }
+                            if (建造前提?.includes('GAYARD')) {
+                                break;
+                            }
+                            if (建造前提?.includes('GAAIRC')) {
+                                break;
+                            }
+                            if (建造前提?.includes('AMRADR')) {
+                                break;
+                            }
+                            continue;
+                            break;
+                        case '苏军':
+                            if (单位.Insignificant == 'yes') {
+                                continue;
+                            }
+                            if (建造前提?.includes('NAWEAP')) {
+                                break;
+                            }
+                            if (建造前提?.includes('NAYARD')) {
+                                break;
+                            }
+                            continue;
+                            break;
+                        case '尤里':
+                            if (单位.Insignificant == 'yes') {
+                                continue;
+                            }
+                            if (建造前提?.includes('YAWEAP')) {
+                                break;
+                            }
+                            if (建造前提?.includes('YAYARD')) {
+                                break;
+                            }
+                            continue;
+                            break;
+                    }
+                    过滤后[注册名] = 单位;
+                }
+                return 过滤后;
+            },
         },
         created: function () {
             this.刷新所有类型();
@@ -271,6 +408,9 @@
 
         },
         methods: {
+            空方法: function () {
+
+            },
             更新检测: async function () {
                 const 加载框 = ElementPlus.ElLoading.service({
                     lock: true,
@@ -582,7 +722,7 @@
                 单位.GroupAs = 参数.注册名;
                 单位.CrateGoodie = 'yes';
                 单位.TechLevel = '11';
-                console.log('战车[' + 参数.注册名 + ']: ', 单位);
+                // console.log('战车[' + 参数.注册名 + ']: ', 单位);
                 delete 单位.UIName2;
                 var 注册表 = {};
                 注册表['VehicleTypes'] = {};
@@ -892,14 +1032,14 @@
 
                     var 原配置 = 注册名 + '=' + 单位数量配置[注册名] + ';';
                     var 新配置 = 原配置 + 动画注册名 + '-';
-                    console.log(原配置);
-                    console.log(新配置);
+                    // console.log(原配置);
+                    // console.log(新配置);
 
                     新单位数量配置 = 新单位数量配置.replace(原配置, 新配置);
                     开始编号++;
                     序号++;
                 }
-                console.log(新单位数量配置);
+                // console.log(新单位数量配置);
                 this.抽卡配置.单位数量配置 = 新单位数量配置;
                 单位生成结果 = ini.stringify(注册表) + '\n\n' + 单位生成结果;
                 this.抽卡配置.单位生成结果 = 单位生成结果;
@@ -942,6 +1082,91 @@
             },
             从抽卡生成器中删除: async function (注册名) {
                 await this.直接删除属性不提示(注册名, 'chouka');
+                ElementPlus.ElNotification({
+                    title: '提示',
+                    message: '取消成功',
+                    type: 'success',
+                    duration: 3000,
+                })
+            },
+
+            打开赏金配置: async function () {
+
+            },
+            设为赏金猎人: async function (注册名, 状态) {
+                if (状态 == true) {
+                    this.保存属性({
+                        注册名: 注册名,
+                        属性名: 'Bounty',
+                        属性值: 'yes',
+                    });
+                    // this.保存属性({
+                    //     注册名: 注册名,
+                    //     属性名: 'Bounty.Display',
+                    //     属性值: 'yes',
+                    // });
+                } else {
+                    this.直接删除属性不提示(注册名, 'Bounty');
+                    // this.直接删除属性不提示(注册名, 'Bounty.Display');
+                }
+
+            },
+            设为赏金猎物: async function (注册名, 单位, 状态) {
+                if (状态 == true) {
+                    var 造价 = 单位.Cost || 单位.cost;
+                    var 赏金 = parseInt(造价 * this.赏金比例 / 100).toString();
+                    this.保存属性({
+                        注册名: 注册名,
+                        属性名: 'Bounty.Value',
+                        属性值: 赏金,
+                    });
+                    var 合并后的单位 = 合并后的数据.rules[注册名];
+                } else {
+                    this.直接删除属性不提示(注册名, 'Bounty.Value');
+                }
+            },
+
+            打开赏金功能: async function () {
+                this.保存属性({
+                    注册名: 'General',
+                    属性名: 'BountyEnablers',
+                    属性值: '',
+                });
+            },
+            关闭赏金功能: async function () {
+                this.直接删除属性不提示('General', 'BountyEnablers');
+            },
+            显示赏金金额: async function () {
+                this.保存属性({
+                    注册名: 'AudioVisual',
+                    属性名: 'BountyDisplay',
+                    属性值: 'yes',
+                });
+            },
+            不显示赏金金额: async function () {
+                this.直接删除属性不提示('AudioVisual', 'BountyDisplay');
+            },
+
+            重新设置所有猎物的赏金: async function (赏金比例) {
+                for (var 注册名 in this.建筑列表) {
+                    var 单位 = this.建筑列表[注册名];
+                    if ('Bounty.Value' in 单位) {
+                        this.设为赏金猎物(注册名, 单位, true);
+                    }
+                }
+                for (var 注册名 in this.士兵列表) {
+                    var 单位 = this.士兵列表[注册名];
+                    if ('Bounty.Value' in 单位) {
+                        this.设为赏金猎物(注册名, 单位, true);
+                    }
+                }
+                for (var 注册名 in this.战车或飞机列表) {
+                    var 单位 = this.战车或飞机列表[注册名];
+                    if ('Bounty.Value' in 单位) {
+                        this.设为赏金猎物(注册名, 单位, true);
+                    }
+                }
+                this.刷新显示数据();
             },
 
             将文本保存成本地文件: function (文本, 文件名) {
@@ -1156,7 +1381,6 @@
                 for await (const 文件 of 目录.values()) {
                     var 所有地图扩展名 = ['yrm', 'mpr', 'map', 'mmx', 'ext'];
                     var 扩展名 = 文件.name.split('.').pop();
-                    console.log(扩展名);
                     if (所有地图扩展名.includes(扩展名)) {
                         地图文件.push(文件);
                     }
@@ -1342,7 +1566,7 @@
             保存属性: async function (编辑的单位) {
                 this.编辑属性对话框 = false;
                 this.暂存属性(编辑的单位.注册名, 编辑的单位.属性名, 编辑的单位.属性值);
-                this.刷新显示数据();
+                await this.刷新显示数据();
             },
             暂存属性: async function (注册名, 属性名, 属性值) {
                 if (typeof 合并后的数据.rules[注册名] == 'undefined') {
@@ -1371,7 +1595,7 @@
                 this.刷新所有类型();
 
                 修改过的注册名[注册名] = true;
-                if (地图数据[注册名][属性名]) {
+                if (属性名 in 地图数据[注册名]) {
                     delete 地图数据[注册名][属性名];
                 }
             },
@@ -1606,7 +1830,7 @@
                     this.报错('武器 [' + 单位[武器属性名] + '] 的抛射体 [' + 武器.Projectile + '] 没有实现, 无法进行复制!');
                     return;
                 }
-                console.log('单位:', 单位);
+                // console.log('单位:', 单位);
                 this.复制武器对话框 = true;
                 this.要复制的武器.注册名 = 注册名;
                 this.要复制的武器.武器属性名 = 武器属性名;
@@ -1630,7 +1854,7 @@
                 }
             },
             开始复制武器: function (武器名, 新武器名, 新弹头名, 新抛射体) {
-                console.log('合并后的数据:', 合并后的数据);
+                // console.log('合并后的数据:', 合并后的数据);
                 var 武器 = 合并后的数据.rules[武器名];
                 if (!武器) {
                     this.报错('该单位武器 [' + 单位[武器属性名] + '] 不存在, 无法复制!');
@@ -1657,7 +1881,7 @@
 
                 this.复制武器对话框 = false;
                 for (var 属性名 in 武器) {
-                    console.log(属性名, 武器[属性名]);
+                    // console.log(属性名, 武器[属性名]);
                     if (typeof 武器[属性名] != 'object') {
                         this.暂存属性(新武器名, 属性名, 武器[属性名]);
                     }
@@ -1689,7 +1913,11 @@
             },
             报错: function (e) {
                 ElementPlus.ElMessage.error(e);
-            }
+            },
+            筛选阵营: function (阵营) {
+                this.选择的阵营 = 阵营;
+                // this.刷新显示数据();
+            },
         }
     }).use(ElementPlus).mount('#app');
 })();

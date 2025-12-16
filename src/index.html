@@ -66,41 +66,158 @@
                 placement="bottom">
                 <el-button type="success" @click="打开抽卡生成器()">抽卡配置</el-button>
             </el-tooltip>
+            <el-button type="success" v-if="!抽卡设置模式" @click="抽卡设置模式 = true">进入抽卡设置模式</el-button>
+            <el-button type="success" v-if="抽卡设置模式" @click="抽卡设置模式 = false">退出抽卡设置模式</el-button>
+            <el-tooltip class="box-item" effect="dark" v-if="!赏金设置模式" content="原理是根据配置自动修改单位的赏金金额" placement="bottom">
+                <el-button type="success" @click="赏金设置模式 = true">进入赏金设置模式</el-button>
+            </el-tooltip>
+            <el-tooltip class="box-item" effect="dark" v-if="赏金设置模式" content="原理是根据配置自动修改单位的赏金金额" placement="bottom">
+                <el-button type="success" @click="赏金设置模式 = false">退出赏金设置模式</el-button>
+            </el-tooltip>
+            <el-dropdown trigger="click">
+                <el-button type="success" style=" margin: 0px 10px 10px;">
+                    阵营: {{选择的阵营}}
+                </el-button>
+                <template #dropdown>
+                    <el-dropdown-menu>
+                        <el-dropdown-item @click="筛选阵营('全部')">全部</el-dropdown-item>
+                        <el-dropdown-item @click="筛选阵营('盟军')">盟军</el-dropdown-item>
+                        <el-dropdown-item @click="筛选阵营('苏军')">苏军</el-dropdown-item>
+                        <el-dropdown-item @click="筛选阵营('尤里')">尤里</el-dropdown-item>
+                    </el-dropdown-menu>
+                </template>
+            </el-dropdown>
             <el-tooltip class="box-item" effect="dark" content="检测版本更新, 如果有新版本, 会自动下载!" placement="bottom">
                 <el-button type="success" @click="更新检测()">检测编辑器是否有更新</el-button>
             </el-tooltip>
+
+        </div>
+        <div v-if="赏金设置模式" style=" text-align: center; line-height: 50px;">
+            <label @click.stop="关闭赏金功能" v-if="配置了赏金模式">
+                <input type="checkbox" checked> 启用赏金模式
+            </label>
+            <label @click.stop="打开赏金功能" v-else="">
+                <input type="checkbox"> 启用赏金模式
+            </label>
+            <label @click.stop="不显示赏金金额" v-if="配置了显示赏金金额">
+                <input type="checkbox" checked> 显示赏金金额
+            </label>
+            <label @click.stop="显示赏金金额" v-else="">
+                <input type="checkbox"> 显示赏金金额
+            </label>
+            <div style=" width: 400px; line-height: 30px; text-align: center; margin: auto; display: flex;">
+                <span style=" flex: 1;  white-space: nowrap; margin-right: 10px;">赏金比例: </span>
+                <el-slider v-model="赏金比例" :max="300" show-input size="small" />
+            </div>
+            <el-button type="success" @click="重新设置所有猎物的赏金">重新设置所有猎物的赏金</el-button>
+            <el-button type="success" @click="赏金设置模式 = false">退出赏金设置模式</el-button>
         </div>
         <el-row>
             <el-col :span="8">
                 <div class="grid-content">
-                    <template v-for="(单位, 注册名) in 建筑列表">
+                    <template v-for="(单位, 注册名) in 过滤后的建筑列表" :key="注册名">
                         <p @click="显示详情(单位, 注册名)" class="scrollbar-demo-item">
                             {{获取单位名字(单位)}}
                             [{{注册名}}]
                             <span v-if="单位.状态 != '未修改'" style="color: red; padding-left: 10px;"> {{单位.状态}}</span>
+                            <template v-if="抽卡设置模式">
+                                <span @click.stop="空方法" style=" padding-left: 10px;">
+                                    <label v-if="单位.chouka == '1'">
+                                        <input type="checkbox" checked @click.stop="从抽卡生成器中删除(注册名)"> 加入抽卡
+                                    </label>
+                                    <label v-else="">
+                                        <input type="checkbox" @click.stop="加入抽卡生成器(注册名)"> 加入抽卡
+                                    </label>
+                                </span>
+                            </template>
+                            <template v-if="赏金设置模式">
+                                <span @click.stop="空方法" style=" padding-left: 10px;">
+                                    <label v-if="单位.Bounty == 'yes'">
+                                        <input type="checkbox" checked @click.stop="设为赏金猎人(注册名, false)"> 猎人
+                                    </label>
+                                    <label v-else="">
+                                        <input type="checkbox" @click.stop="设为赏金猎人(注册名, true)"> 猎人
+                                    </label>
+
+                                    <label v-if="单位['Bounty.Value']">
+                                        <input type="checkbox" checked @click.stop="设为赏金猎物(注册名, 单位, false)"> 猎物
+                                    </label>
+                                    <label v-else="">
+                                        <input type="checkbox" @click.stop="设为赏金猎物(注册名, 单位, true)"> 猎物
+                                    </label>
+                                    <label v-if="单位['Bounty.Value']">赏金: {{单位['Bounty.Value']}}</label>
+                                </span>
+                            </template>
                         </p>
                     </template>
                 </div>
             </el-col>
             <el-col :span="8">
                 <div class="grid-content">
-                    <template v-for="(单位, 注册名) in 士兵列表">
+                    <template v-for="(单位, 注册名) in 过滤后的士兵列表" :key="注册名">
                         <p @click="显示详情(单位, 注册名)" class="scrollbar-demo-item">
                             {{获取单位名字(单位)}}
                             [{{注册名}}]
                             <span v-if="单位.状态 != '未修改'" style="color: red; padding-left: 10px;"> {{单位.状态}}</span>
+                            <template v-if="赏金设置模式">
+                                <span @click.stop="空方法" style=" padding-left: 10px;">
+                                    <label v-if="单位.Bounty == 'yes'">
+                                        <input type="checkbox" checked @click.stop="设为赏金猎人(注册名, false)"> 猎人
+                                    </label>
+                                    <label v-else="">
+                                        <input type="checkbox" @click.stop="设为赏金猎人(注册名, true)"> 猎人
+                                    </label>
+
+                                    <label v-if="单位['Bounty.Value']">
+                                        <input type="checkbox" checked @click.stop="设为赏金猎物(注册名, 单位, false)"> 猎物
+                                    </label>
+                                    <label v-else="">
+                                        <input type="checkbox" @click.stop="设为赏金猎物(注册名, 单位, true)"> 猎物
+                                    </label>
+                                    <label v-if="单位['Bounty.Value']">赏金: {{单位['Bounty.Value']}}</label>
+                                </span>
+                            </template>
                         </p>
+
                     </template>
                 </div>
 
             </el-col>
             <el-col :span="8">
                 <div class="grid-content">
-                    <template v-for="(单位, 注册名) in 战车或飞机列表">
+                    <template v-for="(单位, 注册名) in 过滤后的战车或飞机列表" :key="注册名">
                         <p @click="显示详情(单位, 注册名)" class="scrollbar-demo-item">
                             {{获取单位名字(单位)}}
                             [{{注册名}}]
                             <span v-if="单位.状态 != '未修改'" style="color: red; padding-left: 10px;"> {{单位.状态}}</span>
+                            <template v-if="抽卡设置模式">
+                                <span @click.stop="空方法" style=" padding-left: 10px;">
+                                    <label v-if="单位.chouka == '1'">
+                                        <input type="checkbox" checked @click.stop="从抽卡生成器中删除(注册名)"> 加入抽卡
+                                    </label>
+                                    <label v-else="">
+                                        <input type="checkbox" @click.stop="加入抽卡生成器(注册名)"> 加入抽卡
+                                    </label>
+                                </span>
+                            </template>
+                            <template v-if="赏金设置模式">
+                                <span @click.stop="空方法" style=" padding-left: 10px;">
+                                    <label v-if="单位.Bounty == 'yes'">
+                                        <input type="checkbox" checked @click.stop="设为赏金猎人(注册名, false)"> 猎人
+                                    </label>
+                                    <label v-else="">
+                                        <input type="checkbox" @click.stop="设为赏金猎人(注册名, true)"> 猎人
+                                    </label>
+
+                                    <label v-if="单位['Bounty.Value']">
+                                        <input type="checkbox" checked @click.stop="设为赏金猎物(注册名, 单位, false)"> 猎物
+                                    </label>
+                                    <label v-else="">
+                                        <input type="checkbox" @click.stop="设为赏金猎物(注册名, 单位, true)"> 猎物
+                                    </label>
+                                    <label v-if="单位['Bounty.Value']">赏金: {{单位['Bounty.Value']}}</label>
+                                </span>
+                            </template>
                         </p>
                     </template>
                 </div>
@@ -770,14 +887,16 @@
                         placeholder="" />
                 </el-form-item>
                 <el-form-item label="盲盒模板">
-                    <el-input v-model="抽卡配置.盲盒模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea" placeholder="" />
+                    <el-input v-model="抽卡配置.盲盒模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
                 </el-form-item>
                 <el-form-item label="动画模板">
-                    <el-input v-model="抽卡配置.动画模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea" placeholder="" />
+                    <el-input v-model="抽卡配置.动画模板" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
+                        placeholder="" />
                 </el-form-item>
                 <el-form-item label="动画拼接">
-                    <el-input v-model="抽卡配置.动画拼接" autocomplete="off" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
-                    placeholder="" />
+                    <el-input v-model="抽卡配置.动画拼接" autocomplete="off" :autosize="{ minRows: 3, maxRows: 5 }"
+                        type="textarea" placeholder="" />
                 </el-form-item>
                 <el-form-item label="rules.ini">
                     <el-input v-model="抽卡配置.单位生成结果" :autosize="{ minRows: 3, maxRows: 5 }" type="textarea"
