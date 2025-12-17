@@ -205,10 +205,14 @@
         },
         computed: {
             配置了赏金模式: function () {
-                return 'BountyEnablers' in 合并后的数据.rules['General'];
+                this.赏金设置模式;
+                var 配置项 = 'BountyEnablers' in 合并后的数据.rules['General'];
+                return 配置项;
             },
             配置了显示赏金金额: function () {
-                return 'BountyDisplay' in 合并后的数据.rules['AudioVisual'];
+                this.赏金设置模式;
+                var 配置项 = 'BountyDisplay' in 合并后的数据.rules['AudioVisual'];
+                return 配置项;
             },
             新建筑: function () {
                 if (!this.选择的地图 || !this.选择的地图["BuildingTypes"]) {
